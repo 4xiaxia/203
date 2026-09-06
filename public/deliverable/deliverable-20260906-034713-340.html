@@ -639,6 +639,128 @@
       word-break: break-all;
     }
 
+    /* 录屏专属样式（夏夏纯客户端录屏，零服务器开销） */
+    .btn-record {
+      border-color: #fca5a5 !important;
+      background: #fff1f2 !important;
+      color: #b91c1c !important;
+      font-weight: 600 !important;
+      transition: all 0.2s ease;
+    }
+    .btn-record:hover {
+      background: #ffe4e6 !important;
+      border-color: #f87171 !important;
+      color: #991b1b !important;
+    }
+    .btn-record.is-recording {
+      background: #fee2e2 !important;
+      border-color: #ef4444 !important;
+      color: #dc2626 !important;
+      animation: pulse-border 1.5s infinite;
+    }
+    .record-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      margin-right: 2px;
+    }
+    .btn-record.is-recording .record-dot {
+      animation: blink 0.8s infinite alternate;
+    }
+    @keyframes blink {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.3; transform: scale(0.8); }
+    }
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.15); }
+    }
+
+    /* 浮动录屏状态栏（全屏/常规均置顶） */
+    .recording-floating-bar {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: #ffffff;
+      padding: 7px 18px;
+      border-radius: 30px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+      border: 1.5px solid rgba(239, 68, 68, 0.65);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .recording-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+      animation: blink 0.7s infinite alternate;
+    }
+    .recording-timer {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #fca5a5;
+    }
+    .btn-rec-stop {
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+    .btn-rec-stop:hover { background: #dc2626; }
+    .btn-rec-cancel {
+      background: transparent;
+      color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-rec-cancel:hover { color: #ffffff; border-color: #ffffff; }
+
+    /* 录屏完成提示 Toast */
+    .deliverable-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 10001;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .deliverable-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     /* 浮动全屏退出按钮 */
     .exit-fullscreen-btn {
       position: fixed;
@@ -663,7 +785,7 @@
 
     /* 打印样式支持 */
     @media print {
-      .top-header, .section-tools, .filter-group, .exit-fullscreen-btn { display: none !important; }
+      .top-header, .section-tools, .filter-group, .exit-fullscreen-btn, .recording-floating-bar { display: none !important; }
       body { background: #ffffff !important; }
       .workspace-container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .tab-pane { display: block !important; }
@@ -672,6 +794,15 @@
   </style>
 </head>
 <body>
+  <!-- 录屏状态浮动条 -->
+  <div class="recording-floating-bar" id="recording-bar">
+    <div class="recording-pulse"></div>
+    <span style="font-weight: 600;">正在录制画布演播</span>
+    <span class="recording-timer" id="recording-timer">00:00</span>
+    <button class="btn-rec-stop" onclick="stopScreenRecording()">⏹ 结束并下载</button>
+    <button class="btn-rec-cancel" onclick="cancelScreenRecording()">✕ 取消</button>
+  </div>
+
   <!-- 退出全屏按钮 -->
   <button class="exit-fullscreen-btn" onclick="toggleFullscreen()">✕ 退出全屏演播</button>
 
@@ -693,6 +824,12 @@
       </div>
 
       <div class="header-actions">
+        <!-- 夏夏录屏按钮（纯客户端录屏，零服务器开销） -->
+        <button class="btn btn-record" id="btn-screen-record" onclick="toggleScreenRecording()" title="点击调起浏览器录屏，可录制画布、板书动作与声音，免去后台渲染开销">
+          <span class="record-dot"></span>
+          <span id="record-btn-text">录制演播视频</span>
+        </button>
+
         <button class="btn" onclick="toggleFullscreen()" title="切换全屏纯净预览">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
           全屏演播
@@ -723,6 +860,10 @@
           <span style="font-size: 11.5px; font-weight: normal; color: #64748b;">(1726 × 980 比例锁定 · 无论缩放或全屏绝不畸变)</span>
         </div>
         <div class="section-tools">
+          <button class="btn btn-record" onclick="toggleScreenRecording()" style="padding: 3px 9px; font-size: 12px; margin-right: 6px;">
+            <span class="record-dot"></span>
+            <span>录制画布</span>
+          </button>
           <label class="tool-toggle-label">
             <input type="checkbox" id="toggle-grid" onchange="toggleGrid(this.checked)" />
             网格参考线
@@ -1592,6 +1733,180 @@
       a.download = `speech-${window.__DELIVERABLE__?.projectCode || 'deliverable'}.txt`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    /* 客户端原生录屏（纯浏览器交互授权，录制画布/动作/音频，0后端服务器开销） */
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordingStream = null;
+    let recordingTimerInterval = null;
+    let recordingSeconds = 0;
+
+    async function toggleScreenRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopScreenRecording();
+      } else {
+        await startScreenRecording();
+      }
+    }
+
+    async function startScreenRecording() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          alert('您的浏览器当前不支持或禁用了屏幕录制 API (getDisplayMedia)。请使用 Chrome、Edge 或在独立浏览器窗口中打开本页面。');
+          return;
+        }
+
+        // 优先请求包含音频的共享（提示用户可选择当前标签页或窗口，勾选共享标签页音频）
+        let stream = null;
+        try {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              displaySurface: 'browser',
+              frameRate: 30,
+            },
+            audio: true,
+          });
+        } catch (e) {
+          // 若用户或环境不支持音频捕获，自动降级为纯视频录制
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 30 },
+          });
+        }
+
+        if (!stream) return;
+        recordingStream = stream;
+
+        // 智能探测浏览器支持的最优录制格式
+        let mimeType = 'video/webm;codecs=vp9,opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'video/webm;codecs=vp8,opus';
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'video/webm';
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = '';
+        }
+
+        recordedChunks = [];
+        const options = mimeType ? { mimeType } : undefined;
+        mediaRecorder = new MediaRecorder(stream, options);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          cleanupRecordingUI();
+          if (recordedChunks.length > 0) {
+            const actualType = mimeType || 'video/webm';
+            const blob = new Blob(recordedChunks, { type: actualType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const projectCode = window.__DELIVERABLE__?.projectCode || 'deliverable';
+            a.href = url;
+            a.download = `board-video-${projectCode}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            const sizeMb = (blob.size / (1024 * 1024)).toFixed(2);
+            showToast(`🎉 演播录屏已保存！时长: ${formatTimer(recordingSeconds)}，文件大小: ${sizeMb} MB`);
+          }
+        };
+
+        // 监听用户点击浏览器底部原生悬浮条的“停止共享”按钮
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.onended = () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+            }
+          };
+        }
+
+        mediaRecorder.start(1000);
+
+        recordingSeconds = 0;
+        updateRecordingTimerText();
+        recordingTimerInterval = setInterval(() => {
+          recordingSeconds++;
+          updateRecordingTimerText();
+        }, 1000);
+
+        const btn = document.getElementById('btn-screen-record');
+        if (btn) btn.classList.add('is-recording');
+        const btnText = document.getElementById('record-btn-text');
+        if (btnText) btnText.textContent = '正在录制 (点击停止)';
+
+        const bar = document.getElementById('recording-bar');
+        if (bar) bar.style.display = 'flex';
+
+        showToast('🔴 录屏已开始！请演播您的板书、动作与口播');
+      } catch (err) {
+        if (err.name !== 'NotAllowedError') {
+          alert('拉起录屏失败: ' + (err.message || String(err)));
+        }
+      }
+    }
+
+    function stopScreenRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      if (recordingStream) {
+        recordingStream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    function cancelScreenRecording() {
+      recordedChunks = [];
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      if (recordingStream) {
+        recordingStream.getTracks().forEach(track => track.stop());
+      }
+      cleanupRecordingUI();
+      showToast('录屏已取消');
+    }
+
+    function cleanupRecordingUI() {
+      if (recordingTimerInterval) {
+        clearInterval(recordingTimerInterval);
+        recordingTimerInterval = null;
+      }
+      const btn = document.getElementById('btn-screen-record');
+      if (btn) btn.classList.remove('is-recording');
+      const btnText = document.getElementById('record-btn-text');
+      if (btnText) btnText.textContent = '录制演播视频';
+      const bar = document.getElementById('recording-bar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    function formatTimer(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateRecordingTimerText() {
+      const el = document.getElementById('recording-timer');
+      if (el) el.textContent = formatTimer(recordingSeconds);
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'deliverable-toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => { t.classList.add('show'); }, 10);
+      setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => t.remove(), 300);
+      }, 4000);
     }
   </script>
 </body>

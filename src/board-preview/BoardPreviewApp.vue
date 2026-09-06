@@ -330,6 +330,139 @@ function printPage() {
   window.print()
 }
 
+// 客户端原生录屏（纯浏览器交互授权，录制画布/动作/音频，0 后台服务器消耗）
+const isRecording = ref(false)
+const recordingSeconds = ref(0)
+let mediaRecorder = null
+let recordedChunks = []
+let recordingStream = null
+let recordingTimerInterval = null
+
+const recordingTimerText = computed(() => {
+  const m = Math.floor(recordingSeconds.value / 60)
+  const s = recordingSeconds.value % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+})
+
+async function toggleScreenRecording() {
+  if (isRecording.value) {
+    stopScreenRecording()
+  } else {
+    await startScreenRecording()
+  }
+}
+
+async function startScreenRecording() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      message.error('您的浏览器当前不支持或禁用了屏幕录制 API (getDisplayMedia)。请使用 Chrome/Edge 浏览器打开。')
+      return
+    }
+
+    let stream = null
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'browser', frameRate: 30 },
+        audio: true,
+      })
+    } catch {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 30 },
+      })
+    }
+
+    if (!stream) return
+    recordingStream = stream
+
+    let mimeType = 'video/webm;codecs=vp9,opus'
+    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8,opus'
+    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm'
+    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = ''
+
+    recordedChunks = []
+    const options = mimeType ? { mimeType } : undefined
+    mediaRecorder = new MediaRecorder(stream, options)
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data)
+      }
+    }
+
+    mediaRecorder.onstop = () => {
+      cleanupRecordingUI()
+      if (recordedChunks.length > 0) {
+        const actualType = mimeType || 'video/webm'
+        const blob = new Blob(recordedChunks, { type: actualType })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `board-video-${projectCode.value || 'deliverable'}.webm`
+        a.click()
+        URL.revokeObjectURL(url)
+        const sizeMb = (blob.size / (1024 * 1024)).toFixed(2)
+        message.success(`🎉 演播录屏已保存！文件大小: ${sizeMb} MB`)
+      }
+    }
+
+    const videoTrack = stream.getVideoTracks()[0]
+    if (videoTrack) {
+      videoTrack.onended = () => {
+        if (isRecording.value) stopScreenRecording()
+      }
+    }
+
+    mediaRecorder.start(1000)
+    isRecording.value = true
+    recordingSeconds.value = 0
+    recordingTimerInterval = setInterval(() => {
+      recordingSeconds.value++
+    }, 1000)
+
+    message.info('🔴 录屏已开始！请演播您的板书与动作')
+  } catch (err) {
+    if (err.name !== 'NotAllowedError') {
+      message.error('启动录屏失败: ' + (err.message || String(err)))
+    }
+  }
+}
+
+function stopScreenRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop()
+  }
+  if (recordingStream) {
+    recordingStream.getTracks().forEach(t => t.stop())
+  }
+}
+
+function cancelScreenRecording() {
+  recordedChunks = []
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop()
+  }
+  if (recordingStream) {
+    recordingStream.getTracks().forEach(t => t.stop())
+  }
+  cleanupRecordingUI()
+  message.info('已取消本次录制')
+}
+
+function cleanupRecordingUI() {
+  if (recordingTimerInterval) {
+    clearInterval(recordingTimerInterval);
+    recordingTimerInterval = null
+  }
+  isRecording.value = false
+}
+
+onBeforeUnmount(() => {
+  cleanupRecordingUI()
+  if (recordingStream) {
+    recordingStream.getTracks().forEach(t => t.stop())
+  }
+})
+
 function getStageTagColor(stage) {
   if (stage === '审题引入') return 'blue'
   if (stage === '知识链接') return 'cyan'
@@ -373,6 +506,17 @@ function getStageTagColor(stage) {
       </div>
 
       <div class="nav-right-actions">
+        <!-- 客户端录屏按钮（拉起浏览器原生授权，0 后端消耗） -->
+        <a-button
+          size="small"
+          class="btn-vue-record"
+          :class="{ 'is-recording': isRecording }"
+          @click="toggleScreenRecording"
+          title="拉起浏览器录屏，录制画布演播与声音"
+        >
+          <span class="rec-dot-icon" :class="{ blink: isRecording }">●</span>
+          <span>{{ isRecording ? `录制中 ${recordingTimerText}` : '录制演播视频' }}</span>
+        </a-button>
         <a-button size="small" @click="copyPageUrl">
           <template #icon><ShareAltOutlined /></template>
           分享链接
@@ -387,6 +531,21 @@ function getStageTagColor(stage) {
         </a-button>
       </div>
     </header>
+
+    <!-- 录屏状态置顶浮动条 -->
+    <transition name="fade">
+      <div v-if="isRecording" class="recording-floating-bar-vue">
+        <span class="recording-pulse-vue"></span>
+        <span style="font-weight: 600;">正在录制画布演播</span>
+        <span class="recording-timer-vue">{{ recordingTimerText }}</span>
+        <a-button size="small" type="primary" danger @click="stopScreenRecording">
+          ⏹ 结束并下载
+        </a-button>
+        <a-button size="small" ghost @click="cancelScreenRecording">
+          ✕ 取消
+        </a-button>
+      </div>
+    </transition>
 
     <!-- 主展示区 -->
     <main class="deliverable-main-container">
@@ -413,6 +572,17 @@ function getStageTagColor(stage) {
             class="fullscreen-floating-toolbar"
             @mouseenter="pingFloatToolbar"
           >
+            <!-- 全屏下录屏按钮 -->
+            <a-button
+              size="small"
+              class="btn-vue-record"
+              :class="{ 'is-recording': isRecording }"
+              @click="toggleScreenRecording"
+            >
+              <span class="rec-dot-icon" :class="{ blink: isRecording }">●</span>
+              <span>{{ isRecording ? `停止录制 (${recordingTimerText})` : '录屏' }}</span>
+            </a-button>
+            <span class="toolbar-divider"></span>
             <label>
               <input type="checkbox" v-model="showGrid" /> 网格
             </label>
@@ -734,6 +904,77 @@ function getStageTagColor(stage) {
 .btn-toggle-fullscreen {
   background: #0f172a !important;
   border-color: #0f172a !important;
+}
+
+/* 录屏专属样式 */
+.btn-vue-record {
+  border-color: #fca5a5 !important;
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+}
+.btn-vue-record:hover {
+  background: #ffe4e6 !important;
+  border-color: #f87171 !important;
+}
+.btn-vue-record.is-recording {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #dc2626 !important;
+  animation: pulse-ring 1.5s infinite;
+}
+.rec-dot-icon {
+  display: inline-block;
+  color: #ef4444;
+  margin-right: 2px;
+  font-size: 11px;
+}
+.rec-dot-icon.blink {
+  animation: blink-rec 0.8s infinite alternate;
+}
+@keyframes blink-rec {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.2; transform: scale(0.85); }
+}
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15); }
+}
+
+/* 录屏状态置顶浮动条 (全屏与常规均置顶) */
+.recording-floating-bar-vue {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 7px 18px;
+  border-radius: 30px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(239, 68, 68, 0.65);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.recording-pulse-vue {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: blink-rec 0.7s infinite alternate;
+}
+.recording-timer-vue {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #fca5a5;
 }
 
 /* 主容器 */

@@ -9,6 +9,7 @@ import { knowledgeRefinePlugin } from './server/knowledgeRefineHandler.js'
 import { handoffStorePlugin } from './server/handoffStoreHandler.js'
 import { screenshotStorePlugin } from './server/screenshotStoreHandler.js'
 import { deliverableStorePlugin } from './server/deliverableStoreHandler.js'
+import { fishAudioPlugin } from './server/fishAudioHandler.js'
 import { AGENT_A_KNOWLEDGE_BASE } from './server/docReferences.js'
 
 const projectRoot = dirname(fileURLToPath(import.meta.url))
@@ -23,6 +24,7 @@ export default defineConfig({
     handoffStorePlugin(),
     screenshotStorePlugin(),
     deliverableStorePlugin(),
+    fishAudioPlugin(),
   ],
   server: {
     host: '0.0.0.0',

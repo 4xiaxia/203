@@ -43,7 +43,7 @@ export function fullPath(filename) {
 }
 
 // 自动为已有但在早期未生成 HTML 的历史 JSON 补齐 companion HTML 文件
-export function syncExistingDeliverableHtmls() {
+export function syncExistingDeliverableHtmls(force = false) {
   ensureDeliverableDir()
   try {
     const jsonFiles = readdirSync(DELIVERABLE_DIR).filter(f => /^deliverable-\d{8}-\d{6}-\d{3}\.json$/.test(f))
@@ -51,7 +51,7 @@ export function syncExistingDeliverableHtmls() {
       const code = jf.replace(/^deliverable-/, '').replace(/\.json$/, '')
       const htmlFile = deliverableHtmlFilename(code)
       const htmlPath = fullPath(htmlFile)
-      if (!existsSync(htmlPath)) {
+      if (force || !existsSync(htmlPath)) {
         try {
           const raw = readFileSync(fullPath(jf), 'utf-8')
           const data = JSON.parse(raw)
@@ -62,7 +62,7 @@ export function syncExistingDeliverableHtmls() {
     }
     // 同步 current.html
     const currentPath = resolve(DELIVERABLE_DIR, 'current.html')
-    if (!existsSync(currentPath) && existsSync(CURRENT_POINTER)) {
+    if ((force || !existsSync(currentPath)) && existsSync(CURRENT_POINTER)) {
       try {
         const cur = JSON.parse(readFileSync(CURRENT_POINTER, 'utf-8'))
         if (cur?.deliverable) {
@@ -230,6 +230,44 @@ export async function handleDeliverableRequest(req, res) {
       files: listDeliverableFiles(),
       current: readCurrentDeliverable()?.filename || null,
     })
+  }
+
+  // POST /api/deliverable/update-sync — 更新时序同步与音频参数
+  if (req.method === 'POST' && path === '/update-sync') {
+    try {
+      const body = await readJsonBody(req)
+      const projectCode = body.projectCode || body.deliverable?.projectCode
+      const rows = body.rows || body.deliverable?.rows
+      if (!projectCode || !Array.isArray(rows)) {
+        return sendJson(req, res, 400, { ok: false, error: '缺少 projectCode 或 rows' })
+      }
+      let currentData = readDeliverableByCode(projectCode)
+      if (!currentData) {
+        const cur = readCurrentDeliverable()
+        if (cur?.projectCode === projectCode) {
+          currentData = cur.deliverable
+        }
+      }
+      if (!currentData) {
+        return sendJson(req, res, 404, { ok: false, error: '未找到对应产物: ' + projectCode })
+      }
+      const updated = {
+        ...currentData,
+        rows,
+        updatedAt: new Date().toISOString(),
+      }
+      const { filename, htmlFilename, url, deliverable: saved } = writeDeliverableFile(updated)
+      return sendJson(req, res, 200, {
+        ok: true,
+        projectCode,
+        filename,
+        htmlFilename,
+        url: url || `/deliverable/${htmlFilename}`,
+        deliverable: saved,
+      })
+    } catch (error) {
+      return sendJson(req, res, 500, { ok: false, error: error?.message || String(error) })
+    }
   }
 
   // POST /api/deliverable — 保存产物生成新文件

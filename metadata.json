@@ -1,6 +1,6 @@
 {
   "name": "Copy of -googel",
-  "description": "Imported from GitHub: zo4xia/-googel",
+  "description": "板书录制与教学素材交付平台，支持真画布时序演播、五字段要素全量表与客户端原生录屏",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
