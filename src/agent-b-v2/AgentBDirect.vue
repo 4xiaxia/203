@@ -21,8 +21,10 @@ import {
   LoadingOutlined,
   ReloadOutlined,
   FileDoneOutlined,
+  FundProjectionScreenOutlined,
 } from '@ant-design/icons-vue'
 import QhPageHeader from '../components/QhPageHeader.vue'
+import KeywordTriggerConfig from '../components/KeywordTriggerConfig.vue'
 import { getAgentBoardToolCatalog } from '../board-tools/boardToolCatalog.js'
 import { BOARD_MARK_COLORS } from '../board-tools/roughNotationTool.js'
 import { ROUGH_DRAWING_COLORS } from '../board-tools/roughDrawingTool.js'
@@ -35,7 +37,7 @@ import { saveLiveBoardPreview } from '../board-preview/liveBoardPreview.js'
 //   saveBoardTypographyConfig,
 // } from '../board-tools/boardTypography.js'
 import { generateAgentBV2Rows } from './service.js'
-import { applyAgentBV2Timeline } from './timing.js'
+import { applyAgentBV2Timeline, calculateSpeechAnchorTimestamp } from './timing.js'
 import { listSkills, DEFAULT_SKILL_ID } from './skills/index.js'
 import { checkAgentRows, applyCheckResult, revertCheckResult } from '../check-agent/service.js'
 import { batchPolishRowsMathAsr } from '../lib/mathAsrConverter.js'
@@ -195,22 +197,26 @@ const canvasParams = ref({
 // board 列编辑状态：-1 表示无编辑，>=0 表示正在编辑的行索引
 const editingBoardIndex = ref(-1)
 
-// 解析 board 字段，兼容 v1.0(string) 和 v2.0(object {startCoord, content})
+// 解析 board 字段，兼容 v1.0(string) 和 v2.0(object {startCoord, content, triggerWord, syncOffset, startDelay})
 function parseBoard(board) {
-  if (board == null) return { startCoord: '', content: '' }
+  if (board == null) return { startCoord: '', content: '', triggerWord: '', syncOffset: 0.2, startDelay: 0.2 }
   if (typeof board === 'string') {
     // v1.0 兼容：尝试解析 [x%, y%] 前缀
     const match = board.match(/^\[(\d+(?:\.\d+)?%\s*,\s*\d+(?:\.\d+)?%)\]\s*/)
-    if (match) return { startCoord: '[' + match[1] + ']', content: board.slice(match[0].length) }
-    return { startCoord: '', content: board }
+    if (match) return { startCoord: '[' + match[1] + ']', content: board.slice(match[0].length), triggerWord: '', syncOffset: 0.2, startDelay: 0.2 }
+    return { startCoord: '', content: board, triggerWord: '', syncOffset: 0.2, startDelay: 0.2 }
   }
   if (typeof board === 'object') {
+    const rawOffset = typeof board.syncOffset === 'number' ? board.syncOffset : (typeof board.startDelay === 'number' ? board.startDelay : 0.2)
     return {
       startCoord: board.startCoord || '',
       content: board.content || '',
+      triggerWord: board.triggerWord || '',
+      syncOffset: rawOffset,
+      startDelay: rawOffset,
     }
   }
-  return { startCoord: '', content: String(board) }
+  return { startCoord: '', content: String(board), triggerWord: '', syncOffset: 0.2, startDelay: 0.2 }
 }
 
 function renderBoardContent(board) {
@@ -387,27 +393,85 @@ function invalidateCheck() {
 
 function updateRow(index, field, value) {
   invalidateCheck()
-  rows.value[index] = { ...rows.value[index], [field]: value }
+  let updatedRow = { ...rows.value[index], [field]: value }
+
+  // 如果修改了口播文案，且本步已绑定触发词，则基于文本识别位置动态重新计算落笔起始时间戳
+  if (field === 'speech') {
+    const currentTrigger = updatedRow.triggerWord || (typeof updatedRow.board === 'object' ? updatedRow.board?.triggerWord : '')
+    if (currentTrigger) {
+      const calc = calculateSpeechAnchorTimestamp(value, currentTrigger, {
+        speechSpeed: canvasParams.value?.speechSpeed || 160,
+      })
+      if (calc.matched) {
+        updatedRow.syncOffset = calc.finalOffset
+        updatedRow.startDelay = calc.finalOffset
+        if (typeof updatedRow.board === 'object' && updatedRow.board) {
+          updatedRow.board.syncOffset = calc.finalOffset
+          updatedRow.board.startDelay = calc.finalOffset
+        }
+      }
+    }
+  }
+
+  rows.value[index] = updatedRow
   if (field === 'speech' || field === 'stage') rows.value = applyAgentBV2Timeline(rows.value)
 }
 
-// 编辑 board.content 时保持 startCoord 不变（v2.0 结构化 board）
+// 关键词触发器配置更新（同步更新 triggerWord、syncOffset 与 startDelay）
+function updateBoardTrigger(index, config) {
+  invalidateCheck()
+  const row = rows.value[index]
+  if (!row) return
+  const current = parseBoard(row.board)
+  const newTriggerWord = config?.triggerWord || ''
+  const newOffset = typeof config?.syncOffset === 'number'
+    ? config.syncOffset
+    : (typeof config?.startDelay === 'number' ? config.startDelay : 0.2)
+
+  rows.value[index] = {
+    ...row,
+    triggerWord: newTriggerWord,
+    syncOffset: newOffset,
+    startDelay: newOffset,
+    board: {
+      ...current,
+      triggerWord: newTriggerWord,
+      syncOffset: newOffset,
+      startDelay: newOffset,
+    },
+  }
+  if (newTriggerWord) {
+    message.success(`已绑定口播锚点「${newTriggerWord}」，动态起笔时间已调为 +${newOffset.toFixed(1)}s`)
+  } else {
+    message.info('已清除口播触发锚点')
+  }
+}
+
+// 编辑 board.content 时保持 startCoord 与 triggerWord 不变（v2.0 结构化 board）
 function updateBoardContent(index, content) {
   invalidateCheck()
   const current = parseBoard(rows.value[index].board)
   rows.value[index] = {
     ...rows.value[index],
-    board: { startCoord: current.startCoord, content },
+    board: {
+      ...current,
+      startCoord: current.startCoord,
+      content,
+    },
   }
 }
 
-// 编辑 board.startCoord 时保持 content 不变
+// 编辑 board.startCoord 时保持 content 与 triggerWord 不变
 function updateBoardStartCoord(index, startCoord) {
   invalidateCheck()
   const current = parseBoard(rows.value[index].board)
   rows.value[index] = {
     ...rows.value[index],
-    board: { startCoord: startCoord || '', content: current.content },
+    board: {
+      ...current,
+      startCoord: startCoord || '',
+      content: current.content,
+    },
   }
 }
 
@@ -719,6 +783,19 @@ function openDeliverablePage() {
   // 优先打开落地归档的实体 HTML 单页文件（与 JSON 同名成对）
   const url = code ? `/deliverable/deliverable-${encodeURIComponent(code)}.html` : '/deliverable/current.html'
   window.open(url, '_blank')
+}
+
+function openHumanBoardPage() {
+  try {
+    const draft = {
+      problemText: handoff.value?.problemText || '',
+      sourceImageUrl: handoff.value?.sourceImageUrl || '',
+      boardPlan: handoff.value?.boardPlan || null,
+      rows: rows.value || []
+    }
+    localStorage.setItem('qinghuabu.humanBoard.liveDraft', JSON.stringify(draft))
+  } catch {}
+  window.open('/human-board.html', '_blank')
 }
 
 function downloadDeliverableJson() {
@@ -1283,6 +1360,18 @@ function isRefineFieldEqual(original, refined) {
                   </template>
                   查看产物单页
                 </a-button>
+
+                <a-button
+                  class="btn-view-human-board"
+                  title="新窗口打开轻量仿人板书真画布（支持画布直接拖动落座、直接滚轮缩放、按Row结对）"
+                  style="border-color: #3b82f6; color: #1d4ed8; background: #eff6ff;"
+                  @click="openHumanBoardPage"
+                >
+                  <template #icon>
+                    <FundProjectionScreenOutlined />
+                  </template>
+                  仿人板书(直拖缩放)
+                </a-button>
               </div>
 
               <!-- 导出数据组 -->
@@ -1498,9 +1587,38 @@ function isRefineFieldEqual(original, refined) {
                     @change="(event) => updateRow(index, 'speech', event.target.value)"
                   />
                   <div class="speech-stat-footer">
-                    <span class="speech-stat-chars">{{ getRowEstimatedSeconds(record.speech).charCount }} 字</span>
-                    <span class="speech-stat-divider">·</span>
-                    <span class="speech-stat-time">约 {{ getRowEstimatedSeconds(record.speech).seconds }} 秒</span>
+                    <div class="speech-stat-left">
+                      <a-popover trigger="click" placement="bottomLeft" :overlayStyle="{ width: '540px' }">
+                        <template #content>
+                          <KeywordTriggerConfig
+                            :speech="record.speech"
+                            :trigger-word="record.triggerWord || parseBoard(record.board).triggerWord"
+                            :sync-offset="record.syncOffset ?? parseBoard(record.board).syncOffset"
+                            :board-content="record.board"
+                            :speech-speed="canvasParams?.speechSpeed || 160"
+                            :step-index="index"
+                            @change="(cfg) => updateBoardTrigger(index, cfg)"
+                          />
+                        </template>
+                        <span
+                          v-if="record.triggerWord || parseBoard(record.board).triggerWord"
+                          class="speech-anchor-pill matched"
+                          title="点击配置关键词触发锚点与动态落笔时序"
+                        >
+                          <span class="pill-pin">📌</span>
+                          <span class="pill-word">「{{ record.triggerWord || parseBoard(record.board).triggerWord }}」</span>
+                          <span class="pill-time">+{{ (record.syncOffset ?? parseBoard(record.board).syncOffset ?? 0.2).toFixed(1) }}s</span>
+                        </span>
+                        <span v-else class="speech-anchor-pill empty" title="点击为该步板书选择或划选口播触发词">
+                          <span class="pill-pin">📌</span> 绑定起笔词
+                        </span>
+                      </a-popover>
+                    </div>
+                    <div class="speech-stat-right">
+                      <span class="speech-stat-chars">{{ getRowEstimatedSeconds(record.speech).charCount }} 字</span>
+                      <span class="speech-stat-divider">·</span>
+                      <span class="speech-stat-time">约 {{ getRowEstimatedSeconds(record.speech).seconds }} 秒</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1509,24 +1627,74 @@ function isRefineFieldEqual(original, refined) {
               <div v-else-if="column.key === 'board'" class="cell-board-box">
                 <div v-if="editingBoardIndex !== index" class="board-card-view" @click="editingBoardIndex = index">
                   <div class="board-card-topbar">
-                    <span v-if="parseBoard(record.board).startCoord" class="board-coord-tag">
-                      {{ parseBoard(record.board).startCoord }}
-                    </span>
-                    <span v-else class="board-coord-tag empty">未定起手点</span>
+                    <div class="board-topbar-tags">
+                      <span v-if="parseBoard(record.board).startCoord" class="board-coord-tag">
+                        {{ parseBoard(record.board).startCoord }}
+                      </span>
+                      <span v-else class="board-coord-tag empty">未定起手点</span>
+
+                      <a-popover trigger="click" placement="bottomLeft" :overlayStyle="{ width: '540px' }">
+                        <template #content>
+                          <KeywordTriggerConfig
+                            :speech="record.speech"
+                            :trigger-word="record.triggerWord || parseBoard(record.board).triggerWord"
+                            :sync-offset="record.syncOffset ?? parseBoard(record.board).syncOffset"
+                            :board-content="record.board"
+                            :speech-speed="canvasParams?.speechSpeed || 160"
+                            :step-index="index"
+                            @change="(cfg) => updateBoardTrigger(index, cfg)"
+                          />
+                        </template>
+                        <span
+                          :class="['board-trigger-tag', (record.triggerWord || parseBoard(record.board).triggerWord) ? 'has-trigger' : 'no-trigger']"
+                          @click.stop
+                          title="点击配置关键词触发锚点与动态起手时间"
+                        >
+                          <span class="trigger-icon">⚡</span>
+                          <span v-if="record.triggerWord || parseBoard(record.board).triggerWord">
+                            「{{ record.triggerWord || parseBoard(record.board).triggerWord }}」+{{ (record.syncOffset ?? parseBoard(record.board).syncOffset ?? 0.2).toFixed(1) }}s
+                          </span>
+                          <span v-else>+ 触发锚点</span>
+                        </span>
+                      </a-popover>
+                    </div>
                     <span class="board-edit-hint">点击编辑板书</span>
                   </div>
                   <div class="board-math-render" v-html="renderBoardContent(record.board) || '<span class=\'board-empty-hint\'>（无板书内容）</span>'" />
                 </div>
 
                 <div v-else class="board-card-edit">
-                  <div class="board-edit-label">起手坐标:</div>
-                  <a-input
-                    :value="parseBoard(record.board).startCoord"
-                    size="small"
-                    placeholder="如 [10%, 45%]"
-                    class="board-coord-input"
-                    @change="(event) => updateBoardStartCoord(index, event.target.value)"
-                  />
+                  <div class="board-edit-grid">
+                    <div class="board-edit-col">
+                      <div class="board-edit-label">起手坐标:</div>
+                      <a-input
+                        :value="parseBoard(record.board).startCoord"
+                        size="small"
+                        placeholder="如 [10%, 45%]"
+                        class="board-coord-input"
+                        @change="(event) => updateBoardStartCoord(index, event.target.value)"
+                      />
+                    </div>
+                    <div class="board-edit-col">
+                      <div class="board-edit-label">起笔触发锚点:</div>
+                      <a-popover trigger="click" placement="bottomLeft" :overlayStyle="{ width: '540px' }">
+                        <template #content>
+                          <KeywordTriggerConfig
+                            :speech="record.speech"
+                            :trigger-word="record.triggerWord || parseBoard(record.board).triggerWord"
+                            :sync-offset="record.syncOffset ?? parseBoard(record.board).syncOffset"
+                            :board-content="record.board"
+                            :speech-speed="canvasParams?.speechSpeed || 160"
+                            :step-index="index"
+                            @change="(cfg) => updateBoardTrigger(index, cfg)"
+                          />
+                        </template>
+                        <a-button size="small" type="dashed" class="btn-trigger-picker-modal">
+                          🎯 {{ (record.triggerWord || parseBoard(record.board).triggerWord) ? `已锚定「${record.triggerWord || parseBoard(record.board).triggerWord}」 (+${(record.syncOffset ?? parseBoard(record.board).syncOffset ?? 0.2).toFixed(1)}s)` : '点击选择或划选口播锚点词' }}
+                        </a-button>
+                      </a-popover>
+                    </div>
+                  </div>
                   <div class="board-edit-label" style="margin-top: 6px;">板书内容 (支持 KaTeX):</div>
                   <a-textarea
                     :value="parseBoard(record.board).content"
@@ -2698,11 +2866,79 @@ function isRefineFieldEqual(original, refined) {
 .speech-stat-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  padding: 2px 8px 5px;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 8px 5px;
   font-size: 11px;
   color: #94a3b8;
+}
+
+.speech-stat-left {
+  display: flex;
+  align-items: center;
+}
+
+.speech-stat-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.speech-anchor-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.speech-anchor-pill.matched {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.speech-anchor-pill.matched:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.speech-anchor-pill.empty {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.speech-anchor-pill.empty:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.pill-pin {
+  font-size: 10px;
+}
+
+.pill-word {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pill-time {
+  font-family: monospace;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  padding: 0 3px;
+  border-radius: 2px;
 }
 
 .speech-stat-chars {
@@ -2742,6 +2978,13 @@ function isRefineFieldEqual(original, refined) {
   margin-bottom: 4px;
 }
 
+.board-topbar-tags {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
 .board-coord-tag {
   font-family: monospace;
   font-size: 10px;
@@ -2755,6 +2998,44 @@ function isRefineFieldEqual(original, refined) {
 .board-coord-tag.empty {
   color: #94a3b8;
   background: #f1f5f9;
+}
+
+.board-trigger-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.board-trigger-tag.has-trigger {
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  font-weight: 600;
+}
+
+.board-trigger-tag.has-trigger:hover {
+  background: #fde68a;
+}
+
+.board-trigger-tag.no-trigger {
+  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.board-trigger-tag.no-trigger:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.trigger-icon {
+  font-size: 9px;
 }
 
 .board-edit-hint {
@@ -2792,6 +3073,18 @@ function isRefineFieldEqual(original, refined) {
   padding: 8px;
 }
 
+.board-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.board-edit-col {
+  display: flex;
+  flex-direction: column;
+}
+
 .board-edit-label {
   font-size: 10px;
   font-weight: 600;
@@ -2802,6 +3095,16 @@ function isRefineFieldEqual(original, refined) {
 .board-coord-input {
   font-family: monospace;
   font-size: 11px;
+}
+
+.btn-trigger-picker-modal {
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  height: 28px;
 }
 
 .board-content-input {

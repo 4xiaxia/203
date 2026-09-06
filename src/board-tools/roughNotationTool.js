@@ -95,6 +95,10 @@ export function validateRoughNotationAction(action) {
       throw new Error('标记时长与抬笔间隔由程序工具计算，Agent 不得覆盖')
     }
     const options = normalizeOptions(action.action, action.options)
+    const rawDelay = action.startDelay ?? action.syncOffset
+    const startDelay = typeof rawDelay === 'number' ? Math.max(0, Math.round(rawDelay * 10) / 10) : (rawDelay ? parseFloat(rawDelay) : undefined)
+    const triggerWord = typeof action.triggerWord === 'string' && action.triggerWord.trim() ? action.triggerWord.trim() : undefined
+
     return {
       ok: true,
       value: {
@@ -103,6 +107,8 @@ export function validateRoughNotationAction(action) {
         target,
         order,
         options,
+        ...(startDelay !== undefined && !isNaN(startDelay) ? { startDelay, syncOffset: startDelay } : {}),
+        ...(triggerWord ? { triggerWord } : {}),
       },
     }
   } catch (error) {

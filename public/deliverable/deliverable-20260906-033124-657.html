@@ -783,6 +783,1034 @@
       display: inline-flex;
     }
 
+    /* 板书活跃激活聚焦特效 */
+    .board-element.is-active-step {
+      border-color: #2563eb !important;
+      background: rgba(239, 246, 255, 0.96) !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35), 0 8px 20px rgba(0,0,0,0.12) !important;
+      transform: scale(1.02);
+      z-index: 50 !important;
+      transition: all 0.2s ease;
+    }
+    .board-element:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    }
+
+    /* ⏱️ 双轨视觉时间轴演播控制台 */
+    .timeline-section {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+
+    .timeline-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timeline-main-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .timeline-badge-model {
+      font-size: 11px;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .timeline-sub-title {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .timeline-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-fish-batch {
+      background: #0f766e;
+      color: #ffffff;
+      border: none;
+    }
+    .btn-fish-batch:hover {
+      background: #0d9488;
+    }
+
+    /* 全局演播流水线状态指示 */
+    .timeline-pipeline-bar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 8px;
+      column-gap: 16px;
+      align-items: center;
+    }
+
+    .pipeline-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .pipeline-live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #94a3b8;
+      transition: background 0.2s;
+    }
+    .pipeline-live-dot.is-live {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: blink 0.8s infinite alternate;
+    }
+
+    .pipeline-counter {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .pipeline-counter-sep {
+      color: #94a3b8;
+      margin: 0 2px;
+    }
+
+    .pipeline-progress-track {
+      grid-column: 1 / -1;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .pipeline-progress-fill {
+      height: 100%;
+      background: #2563eb;
+      border-radius: 3px;
+      transition: width 0.15s linear;
+    }
+
+    /* 🎯 可视化动静时序对齐组件 (Visual Timeline Track) 样式 */
+    .vt-component-container {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+    }
+    .vt-component-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .vt-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vt-header-icon {
+      font-size: 16px;
+    }
+    .vt-header-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .vt-header-badge {
+      font-size: 11px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .vt-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .vt-hint-pill {
+      font-size: 11px;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+    }
+    .vt-zoom-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .vt-tool-btn {
+      padding: 3px 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+    }
+    .vt-tool-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .vt-zoom-level {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      min-width: 36px;
+      text-align: center;
+    }
+    .vt-scroll-box {
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: #fafafa;
+      user-select: none;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .vt-scroll-box::-webkit-scrollbar {
+      height: 7px;
+    }
+    .vt-scroll-box::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .vt-canvas-track {
+      position: relative;
+      min-height: 230px;
+      padding: 0 0 10px 110px;
+    }
+    .vt-ruler {
+      position: relative;
+      height: 24px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .vt-tick-mark {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .vt-tick-bar {
+      width: 1px;
+      height: 6px;
+      background: #cbd5e1;
+    }
+    .vt-tick-mark.is-major .vt-tick-bar {
+      height: 10px;
+      background: #94a3b8;
+    }
+    .vt-tick-mark.is-deca .vt-tick-bar {
+      height: 14px;
+      background: #475569;
+      width: 1.5px;
+    }
+    .vt-tick-num {
+      font-size: 9.5px;
+      color: #64748b;
+      font-family: ui-monospace, monospace;
+      margin-top: 1px;
+    }
+    .vt-lane-row {
+      position: relative;
+      height: 64px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .vt-lane-side-tag {
+      position: absolute;
+      left: -110px;
+      top: 0;
+      bottom: 0;
+      width: 102px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      background: #f1f5f9;
+      border-right: 1px solid #e2e8f0;
+      z-index: 10;
+    }
+    .vt-lane-body {
+      position: relative;
+      height: 100%;
+    }
+    .vt-audio-clip {
+      position: absolute;
+      top: 6px;
+      height: 52px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: all 0.15s ease;
+    }
+    .vt-audio-clip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.07);
+    }
+    .vt-audio-clip.active {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+      background: #f8fafc;
+    }
+    .vt-clip-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vt-clip-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+      background: #2563eb;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .vt-clip-dur {
+      font-size: 10px;
+      color: #64748b;
+      font-family: ui-monospace, monospace;
+    }
+    .vt-clip-speech {
+      font-size: 11px;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+    .vt-clip-waves {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 10px;
+      opacity: 0.4;
+    }
+    .w-bar {
+      flex: 1;
+      background: #2563eb;
+      border-radius: 1px;
+    }
+    .vt-lane-center {
+      height: 52px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      cursor: pointer;
+    }
+    .vt-slot-bg {
+      position: absolute;
+      top: 14px;
+      height: 24px;
+    }
+    .vt-slot-speech-dur {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(37, 99, 235, 0.08);
+      border-radius: 3px;
+      border: 1px dashed rgba(37, 99, 235, 0.2);
+    }
+    .vt-slot-gap-dur {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 4px, #cbd5e1 4px, #cbd5e1 8px);
+      opacity: 0.5;
+    }
+    .vt-progress-fill-line {
+      position: absolute;
+      top: 24px;
+      height: 6px;
+      left: 0;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      border-radius: 3px;
+      z-index: 2;
+    }
+    .vt-marker-pin {
+      position: absolute;
+      top: 2px;
+      bottom: 0;
+      width: 26px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: grab;
+      z-index: 15;
+      user-select: none;
+    }
+    .vt-marker-pin:active, .vt-marker-pin.is-dragging {
+      cursor: grabbing;
+    }
+    .vt-marker-stem {
+      width: 2px;
+      height: 24px;
+      background: #2563eb;
+    }
+    .vt-marker-pin.active .vt-marker-stem {
+      width: 3px;
+    }
+    .vt-marker-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 6px;
+      padding: 1px 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+      transition: transform 0.15s ease;
+    }
+    .vt-marker-pin:hover .vt-marker-handle, .vt-marker-pin.active .vt-marker-handle {
+      transform: scale(1.15);
+      box-shadow: 0 4px 8px rgba(37,99,235,0.25);
+    }
+    .vt-handle-icon {
+      font-size: 10px;
+    }
+    .vt-handle-num {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #2563eb;
+      font-family: ui-monospace, monospace;
+    }
+    .vt-marker-bubble {
+      position: absolute;
+      top: -26px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 30;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .vt-marker-pin:hover .vt-marker-bubble, .vt-marker-pin.active .vt-marker-bubble, .vt-marker-pin.is-dragging .vt-marker-bubble {
+      opacity: 1;
+    }
+    .vt-bubble-time {
+      color: #38bdf8;
+      font-weight: 700;
+      font-family: ui-monospace, monospace;
+    }
+    .vt-bubble-offset {
+      color: #94a3b8;
+    }
+    .vt-playhead-line {
+      position: absolute;
+      top: -24px;
+      bottom: -64px;
+      width: 2px;
+      pointer-events: none;
+      z-index: 25;
+      transform: translateX(-50%);
+    }
+    .vt-playhead-cap {
+      width: 12px;
+      height: 12px;
+      background: #ef4444;
+      clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+      margin-left: -5px;
+    }
+    .vt-playhead-needle {
+      width: 2px;
+      height: 100%;
+      background: #ef4444;
+      box-shadow: 0 0 4px rgba(239,68,68,0.5);
+    }
+    .vt-playhead-tag {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ef4444;
+      color: #fff;
+      font-size: 9.5px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .vt-board-clip {
+      position: absolute;
+      top: 6px;
+      height: 50px;
+      background: #ffffff;
+      border: 1.5px solid #0d9488;
+      border-radius: 6px;
+      padding: 3px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.15s ease;
+    }
+    .vt-board-clip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.07);
+    }
+    .vt-board-clip.active {
+      border-width: 2px;
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.25);
+      background: #f0fdf4;
+    }
+    .vt-board-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vt-board-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #0f766e;
+      background: #ccfbf1;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .vt-board-content {
+      font-size: 11px;
+      color: #1e293b;
+      font-family: ui-monospace, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 水平分段小组轨 */
+    .timeline-rail-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-rail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .rail-title {
+      font-weight: 700;
+      color: #334155;
+    }
+    .rail-tip {
+      color: #64748b;
+    }
+
+    .timeline-groups-rail {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .timeline-groups-rail::-webkit-scrollbar {
+      height: 6px;
+    }
+    .timeline-groups-rail::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    .group-card {
+      flex: 0 0 210px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .group-card:hover {
+      border-color: #94a3b8;
+      background: #ffffff;
+      transform: translateY(-1px);
+    }
+    .group-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    }
+    .group-card.playing {
+      border-color: #059669;
+      background: #ecfdf5;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+
+    .group-card-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group-num {
+      font-weight: 700;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .group-dur-pill {
+      font-size: 10.5px;
+      font-family: ui-monospace, monospace;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: auto;
+    }
+
+    .group-card-speech-preview {
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 34px;
+    }
+
+    .group-card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      flex-wrap: wrap;
+    }
+    .group-zone-tag {
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .group-zone-tag.zone-topic { background: #dbeafe; color: #1e40af; }
+    .group-zone-tag.zone-knowledge { background: #ffedd5; color: #9a3412; }
+    .group-zone-tag.zone-analysis { background: #dcfce7; color: #166534; }
+    .group-zone-tag.zone-solution { background: #f3e8ff; color: #6b21a8; }
+    .group-zone-tag.zone-summary { background: #fef3c7; color: #92400e; }
+    .group-zone-tag.zone-default { background: #f1f5f9; color: #475569; }
+
+    .group-coord-tag {
+      color: #64748b;
+      font-family: ui-monospace, monospace;
+    }
+
+    .group-audio-status {
+      margin-left: auto;
+      font-weight: 600;
+    }
+    .group-audio-status.has-audio { color: #059669; }
+    .group-audio-status.no-audio { color: #d97706; }
+
+    .group-card-progress-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: transparent;
+    }
+    .group-card-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #2563eb;
+      transition: width 0.1s linear;
+    }
+
+    /* 当前活跃小组双轨演播视窗与微调面板 */
+    .timeline-inspector {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .track-lane {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fafbfc;
+      overflow: hidden;
+    }
+
+    .track-lane-header {
+      background: #f1f5f9;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .track-lane-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .track-lane-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 口播文字预览 */
+    .speech-preview-box {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #0f172a;
+      background: #ffffff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #2563eb;
+    }
+
+    /* 音频播放器栏 */
+    .audio-player-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-play-toggle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .btn-play-toggle:hover { background: #1d4ed8; }
+
+    .audio-scrubber-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audio-range-slider {
+      flex: 1;
+      height: 5px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .audio-time-counter {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 12px;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    /* 音频直链与操作条 */
+    .audio-url-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px dashed #cbd5e1;
+      font-size: 12px;
+    }
+
+    .audio-url-label {
+      font-weight: 600;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .audio-url-input {
+      flex: 1;
+      min-width: 220px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 11.5px;
+      color: #0f172a;
+    }
+
+    .btn-audio-tool {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-audio-tool:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .btn-audio-tool.highlight {
+      background: #ecfdf5;
+      color: #065f46;
+      border-color: #a7f3d0;
+      font-weight: 600;
+    }
+    .btn-audio-tool.highlight:hover {
+      background: #d1fae5;
+    }
+
+    /* 下轨：板书动作与落座范围 */
+    .board-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .board-meta-pill {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .board-meta-pill strong {
+      color: #0f172a;
+    }
+
+    .board-preview-box {
+      font-size: 15px;
+      line-height: 1.6;
+      background: #ffffff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #7c3aed;
+    }
+
+    /* 手动同步微调控制栏 */
+    .track-sync-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .sync-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .sync-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: #334155;
+    }
+    .sync-item-label {
+      font-weight: 600;
+    }
+
+    .sync-btn-step {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sync-btn-step:hover { background: #f1f5f9; }
+
+    .sync-val-display {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-weight: 700;
+      color: #1e293b;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    .sync-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 表格中的音频单元格 */
+    .col-audio { min-width: 170px; }
+    .table-audio-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .audio-badge-active {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      align-self: flex-start;
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #059669;
+    }
+    .audio-actions-mini {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-audio-mini {
+      padding: 2px 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #334155;
+    }
+    .btn-audio-mini:hover { background: #f1f5f9; }
+    .audio-link-text {
+      font-size: 10px;
+      font-family: ui-monospace, monospace;
+      color: #64748b;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-audio-gen-mini {
+      padding: 3px 8px;
+      font-size: 11.5px;
+      border-radius: 4px;
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      color: #b45309;
+      cursor: pointer;
+      font-weight: 600;
+      align-self: flex-start;
+    }
+    .btn-audio-gen-mini:hover { background: #fef3c7; }
+    .table-sync-meta {
+      font-size: 10.5px;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+    }
+
     /* 打印样式支持 */
     @media print {
       .top-header, .section-tools, .filter-group, .exit-fullscreen-btn, .recording-floating-bar { display: none !important; }
@@ -908,14 +1936,14 @@
           <!-- 板书元素渲染层 -->
           <div class="board-elements-layer">
             
-      <div class="board-element stage-topic" style="left: 6%; top: 13.2%; position: absolute;" data-step="1" id="board-step-1">
+      <div class="board-element stage-topic" style="cursor: pointer; left: 6%; top: 13.2%; position: absolute;" data-step="1" id="board-step-1" onclick="selectGroup(0)" title="点击在时间轴中聚焦第 1 组 (审题引入)">
         <span class="board-coord-tag">(6%, 13.2%)</span>
         <span class="board-step-pill">审题引入</span>
         <div class="board-content-body">已知长方形长为8厘米，宽为5厘米</div>
       </div>
     
 
-      <div class="board-element stage-knowledge" style="left: 6%; top: 41%; position: absolute;" data-step="2" id="board-step-2">
+      <div class="board-element stage-knowledge" style="cursor: pointer; left: 6%; top: 41%; position: absolute;" data-step="2" id="board-step-2" onclick="selectGroup(1)" title="点击在时间轴中聚焦第 2 组 (知识链接)">
         <span class="board-coord-tag">(6%, 41%)</span>
         <span class="board-step-pill">知识链接</span>
         <div class="board-content-body">面积公式：S = a × b</div>
@@ -923,6 +1951,412 @@
     
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ⏱️ 双轨视觉时间轴演播控制台 (Upper: 口播音频轨 · Lower: 板书动作轨 · 自然音频时长驱动流水线) -->
+    <section class="timeline-section" id="timeline-section">
+      <div class="timeline-header">
+        <div class="timeline-title-wrap">
+          <div class="timeline-main-title">
+            <span class="timeline-title-icon">⏱️</span>
+            <span class="timeline-title-text">双轨视觉时间轴演播控制台</span>
+            <span class="timeline-badge-model">Fish Audio · s2.1-pro-free</span>
+          </div>
+          <div class="timeline-sub-title">
+            上轨口播音频 · 下面板书动作 · 自然音频时长驱动 · 一组接一组自动化流水线 · 手动时序延时微调
+          </div>
+        </div>
+
+        <div class="timeline-actions">
+          <button class="btn btn-primary" id="btn-seq-play" onclick="toggleSequentialPlay()">
+            <span id="seq-play-icon">▶</span>
+            <span id="seq-play-text">顺序连播流水线 (一组接一组)</span>
+          </button>
+          <button class="btn" onclick="resetPlayback()">
+            <span>⏹</span>
+            <span>重置</span>
+          </button>
+          <button class="btn btn-fish-batch" onclick="batchGenerateAllAudios()" id="btn-batch-audio">
+            <span>⚡</span>
+            <span>一键生成全套语音 (免费版)</span>
+          </button>
+          <button class="btn" onclick="saveSyncData()" title="将手动微调的时序延时与合成的音频地址保存到归档文件">
+            <span>💾</span>
+            <span>保存时序设定</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 全局演播流水线进度指示条 -->
+      <div class="timeline-pipeline-bar">
+        <div class="pipeline-status">
+          <span class="pipeline-live-dot" id="pipeline-dot"></span>
+          <span class="pipeline-status-text" id="pipeline-status-text">就绪 · 点击下方小组卡片或播放键开始演播</span>
+        </div>
+        <div class="pipeline-counter">
+          <span id="pipeline-current-time">00:00</span>
+          <span class="pipeline-counter-sep">/</span>
+          <span id="pipeline-total-time">00:00</span>
+        </div>
+        <div class="pipeline-progress-track">
+          <div class="pipeline-progress-fill" id="pipeline-progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- 🎯 可视化动静时序对齐轴 (Visual Timeline: Central Audio Track with Draggable Segment Markers) -->
+      <div class="vt-component-container" id="vt-component-container">
+        <div class="vt-component-header">
+          <div class="vt-header-left">
+            <span class="vt-header-icon">🎛️</span>
+            <span class="vt-header-title">动静双轨视觉时间轴 (Visual Timeline Track)</span>
+            <span class="vt-header-badge">中央音频进度轨 · ✍️可拖拽板书标记 · 实时时序对齐</span>
+          </div>
+          <div class="vt-header-right">
+            <span class="vt-hint-pill">💡 水平拖拽彩色把手 ✍️#N 可精准对齐板书起手时点；点击中央轨跳转播放</span>
+            <div class="vt-zoom-btns">
+              <button class="vt-tool-btn" onclick="zoomTimeline(0.8)" title="缩小时间轴">🔍-</button>
+              <span class="vt-zoom-level" id="vt-zoom-level">100%</span>
+              <button class="vt-tool-btn" onclick="zoomTimeline(1.25)" title="放大时间轴">🔍+</button>
+              <button class="vt-tool-btn" onclick="resetTimelineZoom()" title="还原 100%">1:1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="vt-scroll-box" id="vt-scroll-box">
+          <div class="vt-canvas-track" id="vt-canvas-track" style="width: 1496px;">
+            <!-- 时间标尺 -->
+            <div class="vt-ruler" id="vt-ruler">
+              
+      <div class="vt-tick-mark is-deca" style="left: 0px;">
+        <div class="vt-tick-bar"></div>
+        <span class="vt-tick-num">00:00</span>
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 76px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 152px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 228px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 304px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark is-deca" style="left: 380px;">
+        <div class="vt-tick-bar"></div>
+        <span class="vt-tick-num">00:10</span>
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 456px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 532px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 608px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 684px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark is-deca" style="left: 760px;">
+        <div class="vt-tick-bar"></div>
+        <span class="vt-tick-num">00:20</span>
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 836px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 912px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 988px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 1064px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark is-deca" style="left: 1140px;">
+        <div class="vt-tick-bar"></div>
+        <span class="vt-tick-num">00:30</span>
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 1216px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 1292px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 1368px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+
+      <div class="vt-tick-mark " style="left: 1444px;">
+        <div class="vt-tick-bar"></div>
+        
+      </div>
+    
+            </div>
+
+            <!-- 上轨：口播音频轨 -->
+            <div class="vt-lane-row vt-lane-audio">
+              <div class="vt-lane-side-tag">🎙️ 口播音频</div>
+              <div class="vt-lane-body">
+                
+    <div class="vt-audio-clip stage-topic active" 
+         id="vt-audio-clip-0" 
+         style="left: 0px; width: 570px;" 
+         onclick="selectGroup(0)">
+      <div class="vt-clip-top">
+        <span class="vt-clip-badge">#1 审题引入</span>
+        <span class="vt-clip-dur">15.0s</span>
+      </div>
+      <div class="vt-clip-speech">同学们好，今天我们来看这道关于长方形面积的题目。</div>
+      <div class="vt-clip-waves">
+        <span class="w-bar" style="height: 40%"></span>
+        <span class="w-bar" style="height: 75%"></span>
+        <span class="w-bar" style="height: 55%"></span>
+        <span class="w-bar" style="height: 85%"></span>
+        <span class="w-bar" style="height: 35%"></span>
+      </div>
+    </div>
+  
+
+    <div class="vt-audio-clip stage-knowledge " 
+         id="vt-audio-clip-1" 
+         style="left: 593px; width: 760px;" 
+         onclick="selectGroup(1)">
+      <div class="vt-clip-top">
+        <span class="vt-clip-badge">#2 知识链接</span>
+        <span class="vt-clip-dur">20.0s</span>
+      </div>
+      <div class="vt-clip-speech">先回忆一下长方形的面积公式等于长乘宽。</div>
+      <div class="vt-clip-waves">
+        <span class="w-bar" style="height: 40%"></span>
+        <span class="w-bar" style="height: 75%"></span>
+        <span class="w-bar" style="height: 55%"></span>
+        <span class="w-bar" style="height: 85%"></span>
+        <span class="w-bar" style="height: 35%"></span>
+      </div>
+    </div>
+  
+              </div>
+            </div>
+
+            <!-- 中央主轨：音频进度线与可拖拽板书标记 -->
+            <div class="vt-lane-row vt-lane-center" id="vt-lane-center" onclick="handleCentralTrackClick(event)">
+              <div class="vt-lane-side-tag">⏱️ 中央进度</div>
+              <div class="vt-lane-body vt-center-body">
+                <!-- 段落底槽 -->
+                
+    <div class="vt-slot-bg" style="left: 0px; width: 593px;">
+      <div class="vt-slot-speech-dur" style="width: 570px;"></div>
+      <div class="vt-slot-gap-dur" style="left: 570px; width: 23px;" title="组间气口"></div>
+    </div>
+  
+
+    <div class="vt-slot-bg" style="left: 593px; width: 783px;">
+      <div class="vt-slot-speech-dur" style="width: 760px;"></div>
+      <div class="vt-slot-gap-dur" style="left: 760px; width: 23px;" title="组间气口"></div>
+    </div>
+  
+
+                <!-- 全局音频播放进度条 -->
+                <div class="vt-progress-fill-line" id="vt-progress-fill-line" style="width: 0px;"></div>
+
+                <!-- 核心：可拖拽段落标记 (Draggable Segment Markers for Board Writing Steps) -->
+                
+    <div class="vt-marker-pin stage-topic active" 
+         id="vt-marker-0" 
+         data-index="0" 
+         data-start="0" 
+         data-dur="15" 
+         data-offset="0.2" 
+         style="left: 8px;" 
+         title="拖拽对齐第1步板书起笔时刻 (当前延时: +0.2s)">
+      <div class="vt-marker-stem"></div>
+      <div class="vt-marker-handle">
+        <span class="vt-handle-icon">✍️</span>
+        <span class="vt-handle-num">#1</span>
+      </div>
+      <div class="vt-marker-bubble">
+        <span class="vt-bubble-time">0.2s</span>
+        <span class="vt-bubble-offset">+0.2s</span>
+      </div>
+    </div>
+  
+
+    <div class="vt-marker-pin stage-knowledge " 
+         id="vt-marker-1" 
+         data-index="1" 
+         data-start="15.6" 
+         data-dur="20" 
+         data-offset="0.2" 
+         style="left: 600px;" 
+         title="拖拽对齐第2步板书起笔时刻 (当前延时: +0.2s)">
+      <div class="vt-marker-stem"></div>
+      <div class="vt-marker-handle">
+        <span class="vt-handle-icon">✍️</span>
+        <span class="vt-handle-num">#2</span>
+      </div>
+      <div class="vt-marker-bubble">
+        <span class="vt-bubble-time">15.8s</span>
+        <span class="vt-bubble-offset">+0.2s</span>
+      </div>
+    </div>
+  
+
+                <!-- 全局播放头指针线 -->
+                <div class="vt-playhead-line" id="vt-playhead-line" style="left: 0px;">
+                  <div class="vt-playhead-tag" id="vt-playhead-tag">00:00.0</div>
+                  <div class="vt-playhead-cap"></div>
+                  <div class="vt-playhead-needle"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 下轨：板书动作轨 -->
+            <div class="vt-lane-row vt-lane-board">
+              <div class="vt-lane-side-tag">✍️ 板书动作</div>
+              <div class="vt-lane-body">
+                
+    <div class="vt-board-clip stage-topic active" 
+         id="vt-board-clip-0" 
+         style="left: 8px; width: 574px;" 
+         onclick="selectGroup(0)">
+      <div class="vt-board-top">
+        <span class="vt-board-badge">起手 (6%, 13.2%)</span>
+      </div>
+      <div class="vt-board-content">已知长方形长为8厘米，宽为5厘米</div>
+    </div>
+  
+
+    <div class="vt-board-clip stage-knowledge " 
+         id="vt-board-clip-1" 
+         style="left: 600px; width: 764px;" 
+         onclick="selectGroup(1)">
+      <div class="vt-board-top">
+        <span class="vt-board-badge">起手 (6%, 41%)</span>
+      </div>
+      <div class="vt-board-content">面积公式：S = a × b</div>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 水平分段小组轨 (按分段显示各组卡片) -->
+      <div class="timeline-rail-wrap">
+        <div class="timeline-rail-header">
+          <span class="rail-title">分段小组轨 (2 组)</span>
+          <span class="rail-tip">💡 点击任意组跳转查看并聚焦画布板书 · 自然音频播完自动衔接下一组</span>
+        </div>
+        <div class="timeline-groups-rail" id="timeline-groups-rail">
+          
+      <div class="group-card stage-topic active" 
+           id="group-card-0" 
+           data-index="0" 
+           onclick="selectGroup(0)">
+        <div class="group-card-top">
+          <span class="group-num">#1</span>
+          <span class="stage-tag stage-topic">审题引入</span>
+          <span class="group-dur-pill" id="card-dur-0">15s</span>
+        </div>
+        <div class="group-card-speech-preview">同学们好，今天我们来看这道关于长方形面积的题目。</div>
+        <div class="group-card-bottom">
+          <span class="group-zone-tag zone-topic">【题目区】</span>
+          <span class="group-coord-tag">(6%, 13.2%)</span>
+          <span class="group-audio-status no-audio" id="audio-status-0">
+            🎙️ 待生成
+          </span>
+        </div>
+        <div class="group-card-progress-bar">
+          <div class="group-card-progress-fill" id="card-prog-0"></div>
+        </div>
+      </div>
+    
+
+      <div class="group-card stage-knowledge " 
+           id="group-card-1" 
+           data-index="1" 
+           onclick="selectGroup(1)">
+        <div class="group-card-top">
+          <span class="group-num">#2</span>
+          <span class="stage-tag stage-knowledge">知识链接</span>
+          <span class="group-dur-pill" id="card-dur-1">20s</span>
+        </div>
+        <div class="group-card-speech-preview">先回忆一下长方形的面积公式等于长乘宽。</div>
+        <div class="group-card-bottom">
+          <span class="group-zone-tag zone-knowledge">【知识区】</span>
+          <span class="group-coord-tag">(6%, 41%)</span>
+          <span class="group-audio-status no-audio" id="audio-status-1">
+            🎙️ 待生成
+          </span>
+        </div>
+        <div class="group-card-progress-bar">
+          <div class="group-card-progress-fill" id="card-prog-1"></div>
+        </div>
+      </div>
+    
+        </div>
+      </div>
+
+      <!-- 当前选中组：上下双轨演播视窗与手动同步微调面板 -->
+      <div class="timeline-inspector" id="timeline-inspector">
+        <!-- 动态通过 JavaScript 渲染当前选中组的双轨详情 -->
       </div>
     </section>
 
@@ -991,11 +2425,12 @@
                 <th class="col-speech">口播文本 (TTS 发音优化)</th>
                 <th class="col-board">板书内容与落点坐标</th>
                 <th class="col-action">动作规范 (actionSpec)</th>
+                <th class="col-audio">音频直链与时序</th>
               </tr>
             </thead>
             <tbody>
               
-      <tr class="table-row stage-topic" data-stage="审题引入">
+      <tr class="table-row stage-topic" data-stage="审题引入" id="table-row-0">
         <td class="col-num">1</td>
         <td class="col-stage"><span class="stage-tag stage-topic">审题引入</span></td>
         <td class="col-dur">15s</td>
@@ -1003,16 +2438,28 @@
           <div class="speech-text">同学们好，今天我们来看这道关于长方形面积的题目。</div>
         </td>
         <td class="col-board">
-          <div class="board-coord-meta">坐标: (6%, 13.2%)</div>
+          <div class="board-coord-meta">起手: (6%, 13.2%) · 【题目区】</div>
           <div class="board-text-rendered">已知长方形长为8厘米，宽为5厘米</div>
         </td>
         <td class="col-action">
           <div class="actions-wrap"><span class="text-muted-empty">— 无额外动作 —</span></div>
         </td>
+        <td class="col-audio">
+          <div class="table-audio-cell" id="table-audio-cell-0">
+            
+              <button class="btn btn-audio-gen-mini" onclick="synthesizeSingleRow(0, event)" title="使用 Fish Audio (s2.1-pro-free) 合成">
+                🎙️ 合成音频
+              </button>
+            
+            <div class="table-sync-meta">
+              延时:0.2s · 气口:0.6s
+            </div>
+          </div>
+        </td>
       </tr>
     
 
-      <tr class="table-row stage-knowledge" data-stage="知识链接">
+      <tr class="table-row stage-knowledge" data-stage="知识链接" id="table-row-1">
         <td class="col-num">2</td>
         <td class="col-stage"><span class="stage-tag stage-knowledge">知识链接</span></td>
         <td class="col-dur">20s</td>
@@ -1020,11 +2467,23 @@
           <div class="speech-text">先回忆一下长方形的面积公式等于长乘宽。</div>
         </td>
         <td class="col-board">
-          <div class="board-coord-meta">坐标: (6%, 41%)</div>
+          <div class="board-coord-meta">起手: (6%, 41%) · 【知识区】</div>
           <div class="board-text-rendered">面积公式：S = a × b</div>
         </td>
         <td class="col-action">
           <div class="actions-wrap"><span class="text-muted-empty">— 无额外动作 —</span></div>
+        </td>
+        <td class="col-audio">
+          <div class="table-audio-cell" id="table-audio-cell-1">
+            
+              <button class="btn btn-audio-gen-mini" onclick="synthesizeSingleRow(1, event)" title="使用 Fish Audio (s2.1-pro-free) 合成">
+                🎙️ 合成音频
+              </button>
+            
+            <div class="table-sync-meta">
+              延时:0.2s · 气口:0.6s
+            </div>
+          </div>
         </td>
       </tr>
     
@@ -1366,6 +2825,938 @@
         t.classList.remove('show');
         setTimeout(() => t.remove(), 300);
       }, 4000);
+    }
+
+    /* ============================================================
+       ⏱️ 双轨视觉时间轴演播控制台 (Timeline Pipeline Runtime)
+       - 包含上轨音频、下轨板书、Fish Audio 语音生成、手动时序同步调节
+       ============================================================ */
+    const timelineState = {
+      activeIndex: 0,
+      isPlaying: false,
+      isAutoSeq: false,
+      audioPlayer: null,
+      activeAudioUrl: null,
+      syncTimer: null,
+      totalDuration: 0,
+      fishModel: 's2.1-pro-free',
+      fishRefId: '5b00791e193649cd952b48d155fe6b22'
+    };
+
+    function escapeHtmlClient(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function parseBoardCoordClient(board) {
+      if (!board) return { x: null, y: null, text: '' };
+      if (typeof board === 'object') {
+        const startCoord = board.startCoord || '';
+        const content = board.content || board.text || '';
+        if (startCoord) {
+          const match = String(startCoord).match(/^s*(?s*([d.]+)s*,s*([d.]+)s*)?/s);
+          if (match) {
+            return { x: parseFloat(match[1]), y: parseFloat(match[2]), text: content };
+          }
+        }
+        if (board.x !== undefined && board.y !== undefined) {
+          return { x: parseFloat(board.x), y: parseFloat(board.y), text: content };
+        }
+        return { x: null, y: null, text: content };
+      }
+      const match = String(board).match(/^s*(s*([d.]+)s*,s*([d.]+)s*)s*(.*)$/s);
+      if (match) {
+        return { x: parseFloat(match[1]), y: parseFloat(match[2]), text: match[3] || '' };
+      }
+      return { x: null, y: null, text: String(board) };
+    }
+
+    function detectZoneInfoClient(x, y, stage) {
+      const s = String(stage || '');
+      if (s.includes('题') || s.includes('引入') || s.includes('审题')) {
+        return { name: '【题目区】', css: 'zone-topic', font: '28px~32px 粗体手写', range: '左上 5.7%~50%, 6.6%~32%' };
+      }
+      if (s.includes('知') || s.includes('链')) {
+        return { name: '【知识区】', css: 'zone-knowledge', font: '22px~26px 知识梳理', range: '左侧 5.7%~50%, 25%~45%' };
+      }
+      if (s.includes('析') || s.includes('探') || s.includes('策略')) {
+        return { name: '【分析区】', css: 'zone-analysis', font: '20px~24px 逻辑推演', range: '左下 5.7%~50%, 34.5%~95%' };
+      }
+      if (s.includes('解') || s.includes('答') || s.includes('算')) {
+        return { name: '【解答区】', css: 'zone-solution', font: '22px~26px 规范算式', range: '右上 53.7%~96%, 6.6%~59%' };
+      }
+      if (s.includes('总') || s.includes('结') || s.includes('回顾')) {
+        return { name: '【总结区】', css: 'zone-summary', font: '20px~24px 方法口诀', range: '右下 53.7%~96%, 62%~95%' };
+      }
+      if (x !== null && y !== null) {
+        if (x < 50 && y < 33) return { name: '【题目区】', css: 'zone-topic', font: '28px~32px 粗体手写', range: '左上 5.7%~50%, 6.6%~32%' };
+        if (x < 50) return { name: '【分析区】', css: 'zone-analysis', font: '20px~24px 逻辑推演', range: '左下 5.7%~50%, 34.5%~95%' };
+        if (y < 60) return { name: '【解答区】', css: 'zone-solution', font: '22px~26px 规范算式', range: '右上 53.7%~96%, 6.6%~59%' };
+        return { name: '【总结区】', css: 'zone-summary', font: '20px~24px 方法口诀', range: '右下 53.7%~96%, 62%~95%' };
+      }
+      return { name: '【全画幅演播区】', css: 'zone-default', font: '22px 规范字号', range: '画幅自适应' };
+    }
+
+    function getStageColorClassClient(stage) {
+      const s = String(stage || '');
+      if (s.includes('题') || s.includes('引入') || s.includes('审题')) return 'stage-topic';
+      if (s.includes('知') || s.includes('链')) return 'stage-knowledge';
+      if (s.includes('析') || s.includes('探') || s.includes('策略')) return 'stage-analysis';
+      if (s.includes('解') || s.includes('答') || s.includes('算')) return 'stage-solution';
+      if (s.includes('总') || s.includes('结') || s.includes('回顾')) return 'stage-summary';
+      return 'stage-default';
+    }
+
+    // 🎯 可视化动静时序数据与交互引擎
+    window.__VT_SEGMENTS__ = [{"index":0,"stage":"审题引入","stageClass":"stage-topic","duration":15,"gapSeconds":0.6,"syncOffset":0.2,"startTime":0,"audioEndTime":15,"endTime":15.6,"markerTime":0.2,"speech":"同学们好，今天我们来看这道关于长方形面积的题目。","boardText":"已知长方形长为8厘米，宽为5厘米","coordStr":"(6%, 13.2%)","audioUrl":""},{"index":1,"stage":"知识链接","stageClass":"stage-knowledge","duration":20,"gapSeconds":0.6,"syncOffset":0.2,"startTime":15.6,"audioEndTime":35.6,"endTime":36.2,"markerTime":15.799999999999999,"speech":"先回忆一下长方形的面积公式等于长乘宽。","boardText":"面积公式：S = a × b","coordStr":"(6%, 41%)","audioUrl":""}];
+    window.__VT_BASE_PPS__ = 38;
+    window.__VT_ZOOM__ = 1.0;
+
+    function initDraggableMarkers() {
+      const container = document.getElementById('vt-canvas-track');
+      if (!container) return;
+      const markers = document.querySelectorAll('.vt-marker-pin');
+      
+      markers.forEach(marker => {
+        const idx = parseInt(marker.getAttribute('data-index'), 10);
+        
+        function onDragStart(clientX) {
+          selectGroup(idx, false);
+          marker.classList.add('is-dragging');
+          
+          const initialOffset = parseFloat(marker.getAttribute('data-offset') || '0.2');
+          const startSec = parseFloat(marker.getAttribute('data-start') || '0');
+          const durSec = parseFloat(marker.getAttribute('data-dur') || '5');
+          const pps = (window.__VT_ZOOM__ || 1.0) * (window.__VT_BASE_PPS__ || 38);
+          
+          function onMove(currentX) {
+            const deltaPx = currentX - clientX;
+            const deltaSec = deltaPx / pps;
+            let newOffset = initialOffset + deltaSec;
+            newOffset = Math.max(0, Math.min(durSec, newOffset));
+            newOffset = Math.round(newOffset * 10) / 10;
+            
+            const newMarkerSec = startSec + newOffset;
+            marker.style.left = Math.round(newMarkerSec * pps) + 'px';
+            marker.setAttribute('data-offset', newOffset);
+            
+            const bubbleOffset = marker.querySelector('.vt-bubble-offset');
+            if (bubbleOffset) bubbleOffset.textContent = '+' + newOffset.toFixed(1) + 's';
+            const bubbleTime = marker.querySelector('.vt-bubble-time');
+            if (bubbleTime) bubbleTime.textContent = newMarkerSec.toFixed(1) + 's';
+            
+            // 实时更新全局模型
+            const rows = window.__DELIVERABLE__?.rows || [];
+            if (rows[idx]) {
+              rows[idx].syncOffset = newOffset;
+            }
+            if (window.__VT_SEGMENTS__ && window.__VT_SEGMENTS__[idx]) {
+              window.__VT_SEGMENTS__[idx].syncOffset = newOffset;
+              window.__VT_SEGMENTS__[idx].markerTime = newMarkerSec;
+            }
+            
+            // 联动更新下方微调面板中的数值
+            const stepVal = document.getElementById('sync-offset-val-' + idx);
+            if (stepVal) stepVal.textContent = newOffset.toFixed(1) + 's';
+            
+            // 联动下轨板书块的位置
+            const boardClip = document.getElementById('vt-board-clip-' + idx);
+            if (boardClip) boardClip.style.left = Math.round(newMarkerSec * pps) + 'px';
+          }
+          
+          function onEnd() {
+            marker.classList.remove('is-dragging');
+            window.removeEventListener('mousemove', onMouseMoveHandler);
+            window.removeEventListener('mouseup', onMouseUpHandler);
+            window.removeEventListener('touchmove', onTouchMoveHandler);
+            window.removeEventListener('touchend', onTouchEndHandler);
+            
+            const finalOffset = parseFloat(marker.getAttribute('data-offset') || '0.2');
+            showToast('已对齐第 ' + (idx + 1) + ' 步板书起笔时刻：延时 +' + finalOffset.toFixed(1) + 's');
+            updateTableSyncMeta(idx);
+          }
+          
+          function onMouseMoveHandler(ev) {
+            onMove(ev.clientX);
+          }
+          function onMouseUpHandler() {
+            onEnd();
+          }
+          function onTouchMoveHandler(ev) {
+            if (ev.touches && ev.touches[0]) {
+              onMove(ev.touches[0].clientX);
+            }
+          }
+          function onTouchEndHandler() {
+            onEnd();
+          }
+          
+          window.addEventListener('mousemove', onMouseMoveHandler);
+          window.addEventListener('mouseup', onMouseUpHandler);
+          window.addEventListener('touchmove', onTouchMoveHandler, { passive: false });
+          window.addEventListener('touchend', onTouchEndHandler);
+        }
+        
+        marker.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          onDragStart(e.clientX);
+        });
+        
+        marker.addEventListener('touchstart', function(e) {
+          if (e.touches && e.touches[0]) {
+            e.stopPropagation();
+            onDragStart(e.touches[0].clientX);
+          }
+        }, { passive: true });
+      });
+    }
+
+    function handleCentralTrackClick(e) {
+      if (e.target.closest('.vt-marker-pin')) return;
+      const track = document.getElementById('vt-canvas-track');
+      if (!track) return;
+      
+      const rect = track.getBoundingClientRect();
+      const clickX = e.clientX - rect.left - 110;
+      if (clickX < 0) return;
+      
+      const pps = (window.__VT_ZOOM__ || 1.0) * (window.__VT_BASE_PPS__ || 38);
+      const targetSec = Math.max(0, clickX / pps);
+      
+      const segments = window.__VT_SEGMENTS__ || [];
+      const found = segments.find(s => targetSec >= s.startTime && targetSec <= s.endTime);
+      if (found) {
+        selectGroup(found.index);
+        if (timelineState.audioPlayer) {
+          const localSec = Math.max(0, targetSec - found.startTime);
+          if (timelineState.audioPlayer.duration && localSec <= timelineState.audioPlayer.duration) {
+            timelineState.audioPlayer.currentTime = localSec;
+          }
+        }
+      }
+      updateVisualPlayhead(targetSec);
+    }
+
+    function updateVisualPlayhead(elapsedSec) {
+      const pps = (window.__VT_ZOOM__ || 1.0) * (window.__VT_BASE_PPS__ || 38);
+      const leftPx = Math.round(elapsedSec * pps);
+      
+      const playhead = document.getElementById('vt-playhead-line');
+      if (playhead) {
+        playhead.style.left = leftPx + 'px';
+      }
+      const fill = document.getElementById('vt-progress-fill-line');
+      if (fill) {
+        fill.style.width = leftPx + 'px';
+      }
+      const tag = document.getElementById('vt-playhead-tag');
+      if (tag) {
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        tag.textContent = String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0');
+      }
+    }
+
+    function zoomTimeline(factor) {
+      const nextZoom = Math.max(0.5, Math.min(2.5, (window.__VT_ZOOM__ || 1.0) * factor));
+      window.__VT_ZOOM__ = Math.round(nextZoom * 100) / 100;
+      applyTimelineZoom();
+    }
+
+    function resetTimelineZoom() {
+      window.__VT_ZOOM__ = 1.0;
+      applyTimelineZoom();
+    }
+
+    function applyTimelineZoom() {
+      const zoom = window.__VT_ZOOM__ || 1.0;
+      const pps = zoom * (window.__VT_BASE_PPS__ || 38);
+      const zoomLevelEl = document.getElementById('vt-zoom-level');
+      if (zoomLevelEl) zoomLevelEl.textContent = Math.round(zoom * 100) + '%';
+      
+      const segments = window.__VT_SEGMENTS__ || [];
+      const totalDur = (segments.length > 0 ? segments[segments.length - 1].endTime : 10) || 1;
+      const track = document.getElementById('vt-canvas-track');
+      if (track) {
+        track.style.width = Math.max(900, Math.round(totalDur * pps) + 140) + 'px';
+      }
+      
+      const ticks = document.querySelectorAll('.vt-tick-mark');
+      ticks.forEach((tick, i) => {
+        tick.style.left = (i * 2 * pps) + 'px';
+      });
+      
+      segments.forEach(seg => {
+        const aClip = document.getElementById('vt-audio-clip-' + seg.index);
+        if (aClip) {
+          aClip.style.left = Math.round(seg.startTime * pps) + 'px';
+          aClip.style.width = Math.max(64, Math.round(seg.duration * pps)) + 'px';
+        }
+        const bClip = document.getElementById('vt-board-clip-' + seg.index);
+        if (bClip) {
+          bClip.style.left = Math.round(seg.markerTime * pps) + 'px';
+          bClip.style.width = Math.max(80, Math.round((seg.duration - seg.syncOffset + 0.3) * pps)) + 'px';
+        }
+        const marker = document.getElementById('vt-marker-' + seg.index);
+        if (marker) {
+          marker.style.left = Math.round(seg.markerTime * pps) + 'px';
+        }
+      });
+      
+      const fill = document.getElementById('pipeline-progress-fill');
+      const curSec = (timelineState.currentTime || 0);
+      updateVisualPlayhead(curSec);
+    }
+
+    function initTimeline() {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      if (rows.length > 0) {
+        selectGroup(0, false);
+        updateTotalPipelineTime();
+      }
+      initDraggableMarkers();
+    }
+
+    function updateTotalPipelineTime() {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      let totalSec = 0;
+      rows.forEach(r => {
+        if (r.audioDuration) {
+          totalSec += parseFloat(r.audioDuration);
+        } else if (r.duration) {
+          const match = String(r.duration).match(/(d+)/);
+          totalSec += match ? parseInt(match[1]) : 5;
+        } else {
+          totalSec += 5;
+        }
+        totalSec += (typeof r.gapSeconds === 'number' ? r.gapSeconds : 0.6);
+      });
+      timelineState.totalDuration = totalSec;
+      const el = document.getElementById('pipeline-total-time');
+      if (el) el.textContent = formatTimer(Math.round(totalSec));
+    }
+
+    function selectGroup(index, shouldScroll = true) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      if (index < 0 || index >= rows.length) return;
+      timelineState.activeIndex = index;
+
+      // 1. 高亮时间轴轨道卡片
+      document.querySelectorAll('.group-card').forEach((card, idx) => {
+        if (idx === index) {
+          card.classList.add('active');
+          if (shouldScroll) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        } else {
+          card.classList.remove('active');
+        }
+      });
+
+      // 2. 高亮画布对应步骤的板书元素
+      document.querySelectorAll('.board-element').forEach((el) => {
+        const stepNum = parseInt(el.getAttribute('data-step') || '0');
+        if (stepNum === index + 1) {
+          el.classList.add('is-active-step');
+        } else {
+          el.classList.remove('is-active-step');
+        }
+      });
+
+      // 3. 高亮表格对应行
+      document.querySelectorAll('#five-fields-table tbody tr').forEach((tr, idx) => {
+        if (idx === index) {
+          tr.style.backgroundColor = '#f0fdf4';
+        } else {
+          tr.style.backgroundColor = '';
+        }
+      });
+
+      // 4. 高亮 Visual Timeline 上的对应轨道块与标记
+      document.querySelectorAll('.vt-marker-pin').forEach((pin, idx) => {
+        if (idx === index) pin.classList.add('active');
+        else pin.classList.remove('active');
+      });
+      document.querySelectorAll('.vt-audio-clip').forEach((clip, idx) => {
+        if (idx === index) clip.classList.add('active');
+        else clip.classList.remove('active');
+      });
+      document.querySelectorAll('.vt-board-clip').forEach((clip, idx) => {
+        if (idx === index) clip.classList.add('active');
+        else clip.classList.remove('active');
+      });
+
+      // 5. 渲染双轨微调监视器
+      renderTimelineInspector();
+    }
+
+    function renderTimelineInspector() {
+      const inspector = document.getElementById('timeline-inspector');
+      if (!inspector) return;
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[timelineState.activeIndex];
+      if (!row) return;
+
+      const idx = timelineState.activeIndex;
+      const stageClass = getStageColorClassClient(row.stage);
+      const coord = parseBoardCoordClient(row.board);
+      const zone = detectZoneInfoClient(coord.x, coord.y, row.stage);
+      const audioUrl = row.audioUrl || '';
+      const audioDur = row.audioDuration ? (Number(row.audioDuration).toFixed(1) + 's') : (row.duration || '自然时长');
+      const syncOffset = typeof row.syncOffset === 'number' ? row.syncOffset : 0.2;
+      const gapSeconds = typeof row.gapSeconds === 'number' ? row.gapSeconds : 0.6;
+
+      const actionsList = Array.isArray(row.actionSpec) ? row.actionSpec : [];
+      let actionsHtml = '<span style="color: #94a3b8; font-size: 12px;">无特殊高亮动画</span>';
+      if (actionsList.length > 0) {
+        actionsHtml = actionsList.map(a => {
+          const actColor = a.color || '#3b82f6';
+          const actName = escapeHtmlClient(a.action || a.type || '动作');
+          const actTarget = a.target ? ('<span class="act-target">' + escapeHtmlClient(a.target) + '</span>') : '';
+          return '<span class="action-spec-pill" style="border-left-color: ' + actColor + ';"><span class="act-name">' + actName + '</span>' + actTarget + '</span>';
+        }).join('');
+      }
+
+      const audioReadyHtml = audioUrl
+        ? '<span style="font-size: 12px; color: #059669; font-weight: 600;">✓ 真实音频就绪</span>'
+        : '<span style="font-size: 12px; color: #d97706; font-weight: 600;">待合成 MP3</span>';
+
+      const audioActionsHtml = audioUrl
+        ? ('<button class="btn-audio-tool" onclick="copyAudioUrl('' + escapeHtmlClient(audioUrl) + '', event)">📋 复制地址</button>' +
+           '<a class="btn-audio-tool" href="' + escapeHtmlClient(audioUrl) + '" target="_blank" download="step-' + (idx + 1) + '.mp3">📥 下载MP3</a>')
+        : '';
+
+      const bP = parseBoardCoordClient(row.board);
+      const bText = bP.text || (typeof row.board === 'object' ? (row.board.content || row.board.text || '') : row.board) || '';
+      const pixelX = coord.x !== null ? Math.round(coord.x * 17.26) + 'px' : '自适应';
+      const pixelY = coord.y !== null ? Math.round(coord.y * 9.8) + 'px' : '自适应';
+      const coordStr = (coord.x !== null && coord.y !== null) ? ('(' + coord.x + '%, ' + coord.y + '%)') : '自动落座';
+
+      inspector.innerHTML = '' +
+        '<!-- 上轨：口播音频 (Fish Audio 自然时长驱动) -->' +
+        '<div class="track-lane">' +
+          '<div class="track-lane-header">' +
+            '<div class="track-lane-title">' +
+              '<span>🎙️ 上轨：第 ' + (idx + 1) + ' 组口播音频</span>' +
+              '<span class="stage-tag ' + stageClass + '">' + escapeHtmlClient(row.stage || ('步骤' + (idx + 1))) + '</span>' +
+              '<span style="font-size: 11.5px; color: #64748b; font-weight: normal;">(时长: ' + escapeHtmlClient(audioDur) + ')</span>' +
+            '</div>' +
+            '<div>' + audioReadyHtml + '</div>' +
+          '</div>' +
+          '<div class="track-lane-body">' +
+            '<div class="speech-preview-box">' + escapeHtmlClient(row.speech || '') + '</div>' +
+            '<div class="audio-player-bar">' +
+              '<button class="btn-play-toggle" id="btn-group-play" onclick="toggleCurrentGroupAudio()">' +
+                '<span id="play-icon-' + idx + '">' + (timelineState.isPlaying ? '⏸' : '▶') + '</span>' +
+              '</button>' +
+              '<div class="audio-scrubber-wrap">' +
+                '<input type="range" class="audio-range-slider" id="audio-scrubber-' + idx + '" min="0" max="100" value="0" oninput="scrubAudio(this.value)" />' +
+                '<span class="audio-time-counter" id="audio-time-' + idx + '">0.0s / ' + audioDur + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="audio-url-bar">' +
+              '<span class="audio-url-label">音频地址:</span>' +
+              '<input type="text" class="audio-url-input" id="audio-url-input-' + idx + '" value="' + escapeHtmlClient(audioUrl) + '" placeholder="尚未生成音频，点击右侧生成或填入外部 MP3 直链" onchange="updateAudioUrlDirectly(this.value)" />' +
+              audioActionsHtml +
+              '<button class="btn-audio-tool highlight" onclick="synthesizeSingleRow(' + idx + ', event)" id="btn-gen-' + idx + '">' +
+                '🎙️ 合成当前语音 (s2.1-pro-free)' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<!-- 下轨：对应板书动作与落座范围 -->' +
+        '<div class="track-lane">' +
+          '<div class="track-lane-header">' +
+            '<div class="track-lane-title">' +
+              '<span>✍️ 下轨：第 ' + (idx + 1) + ' 组对应板书动作与落座</span>' +
+              '<span class="group-zone-tag ' + zone.css + '">' + zone.name + '</span>' +
+            '</div>' +
+            '<div style="font-size: 11.5px; color: #64748b;">' +
+              '起手绝对像素: [' + pixelX + ', ' + pixelY + ']' +
+            '</div>' +
+          '</div>' +
+          '<div class="track-lane-body">' +
+            '<div class="board-meta-row">' +
+              '<div class="board-meta-pill"><span>📍 起手位置:</span><strong>' + coordStr + '</strong></div>' +
+              '<div class="board-meta-pill"><span>📐 区域范围:</span><strong>' + zone.range + '</strong></div>' +
+              '<div class="board-meta-pill"><span>🔤 推荐字体字号:</span><strong>' + zone.font + '</strong></div>' +
+            '</div>' +
+            '<div class="board-preview-box">' + escapeHtmlClient(bText) + '</div>' +
+            '<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">' +
+              '<span style="font-size: 12px; font-weight: 600; color: #475569;">板书动作指令:</span>' +
+              actionsHtml +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<!-- 手动微调与时间同步控制条 -->' +
+        '<div class="track-sync-bar">' +
+          '<div class="sync-controls-group">' +
+            '<div class="sync-item" title="板书起手相对于口播开始的延时（秒）">' +
+              '<span class="sync-item-label">⏱️ 板书起笔延时:</span>' +
+              '<button class="sync-btn-step" onclick="adjustOffset(-0.1)">-</button>' +
+              '<span class="sync-val-display" id="display-offset">' + syncOffset.toFixed(1) + 's</span>' +
+              '<button class="sync-btn-step" onclick="adjustOffset(0.1)">+</button>' +
+            '</div>' +
+            '<div class="sync-item" title="当前组播完到下一组开讲的气口间隔（秒）">' +
+              '<span class="sync-item-label">⏸️ 组间气口间隔:</span>' +
+              '<button class="sync-btn-step" onclick="adjustGap(-0.1)">-</button>' +
+              '<span class="sync-val-display" id="display-gap">' + gapSeconds.toFixed(1) + 's</span>' +
+              '<button class="sync-btn-step" onclick="adjustGap(0.1)">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="sync-actions">' +
+            '<button class="btn" onclick="previewCurrentSync()">▶ 试听本组动静同步</button>' +
+            '<button class="btn btn-primary" onclick="saveSyncData()">💾 保存时序设定</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function adjustOffset(delta) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[timelineState.activeIndex];
+      if (!row) return;
+      let val = (typeof row.syncOffset === 'number' ? row.syncOffset : 0.2) + delta;
+      val = Math.max(0, Math.min(5, Math.round(val * 10) / 10));
+      row.syncOffset = val;
+      const el = document.getElementById('display-offset');
+      if (el) el.textContent = val.toFixed(1) + 's';
+      updateTableSyncMeta(timelineState.activeIndex);
+    }
+
+    function adjustGap(delta) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[timelineState.activeIndex];
+      if (!row) return;
+      let val = (typeof row.gapSeconds === 'number' ? row.gapSeconds : 0.6) + delta;
+      val = Math.max(0, Math.min(5, Math.round(val * 10) / 10));
+      row.gapSeconds = val;
+      const el = document.getElementById('display-gap');
+      if (el) el.textContent = val.toFixed(1) + 's';
+      updateTableSyncMeta(timelineState.activeIndex);
+      updateTotalPipelineTime();
+    }
+
+    function updateTableSyncMeta(idx) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[idx];
+      const cell = document.getElementById('table-audio-cell-' + idx);
+      if (cell && row) {
+        const metaEl = cell.querySelector('.table-sync-meta');
+        if (metaEl) {
+          const off = typeof row.syncOffset === 'number' ? row.syncOffset : 0.2;
+          const gap = typeof row.gapSeconds === 'number' ? row.gapSeconds : 0.6;
+          metaEl.textContent = '延时:' + off.toFixed(1) + 's · 气口:' + gap.toFixed(1) + 's';
+        }
+      }
+    }
+
+    function updateAudioUrlDirectly(val) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[timelineState.activeIndex];
+      if (row) {
+        row.audioUrl = val.trim();
+        showToast('✓ 音频地址已更新，请记得点击保存时序设定');
+      }
+    }
+
+    function toggleCurrentGroupAudio() {
+      if (timelineState.isPlaying) {
+        pauseAudio();
+      } else {
+        playCurrentGroup(false);
+      }
+    }
+
+    function playRowAudio(idx, event) {
+      if (event) event.stopPropagation();
+      selectGroup(idx);
+      playCurrentGroup(false);
+    }
+
+    function pauseAudio() {
+      if (timelineState.audioPlayer) {
+        timelineState.audioPlayer.pause();
+      }
+      timelineState.isPlaying = false;
+      timelineState.isAutoSeq = false;
+      updatePlayControlsUI();
+      const dot = document.getElementById('pipeline-dot');
+      if (dot) dot.classList.remove('is-live');
+    }
+
+    function playCurrentGroup(autoAdvance) {
+      if (autoAdvance === undefined) autoAdvance = false;
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const idx = timelineState.activeIndex;
+      const row = rows[idx];
+      if (!row) return;
+
+      if (!row.audioUrl) {
+        showToast('💡 第 ' + (idx + 1) + ' 组尚未生成音频，正在为您合成...');
+        synthesizeSingleRow(idx, null, function() {
+          playCurrentGroup(autoAdvance);
+        });
+        return;
+      }
+
+      if (timelineState.audioPlayer) {
+        timelineState.audioPlayer.pause();
+      }
+
+      const audio = new Audio(row.audioUrl);
+      timelineState.audioPlayer = audio;
+      timelineState.activeAudioUrl = row.audioUrl;
+      timelineState.isPlaying = true;
+
+      const card = document.getElementById('group-card-' + idx);
+      if (card) card.classList.add('playing');
+      const dot = document.getElementById('pipeline-dot');
+      if (dot) dot.classList.add('is-live');
+      const statusText = document.getElementById('pipeline-status-text');
+      if (statusText) statusText.textContent = '正在演播第 ' + (idx + 1) + ' 组 (' + (row.stage || '') + ') · 上轨口播播放中...';
+
+      updatePlayControlsUI();
+
+      // 板书起笔延时触发
+      const syncOffset = typeof row.syncOffset === 'number' ? row.syncOffset : 0.2;
+      clearTimeout(timelineState.syncTimer);
+      timelineState.syncTimer = setTimeout(function() {
+        triggerBoardAction(idx);
+      }, syncOffset * 1000);
+
+      audio.ontimeupdate = function() {
+        if (!audio.duration) return;
+        const cur = audio.currentTime;
+        const dur = audio.duration;
+        const percent = Math.min(100, (cur / dur) * 100);
+
+        const scrubber = document.getElementById('audio-scrubber-' + idx);
+        if (scrubber) scrubber.value = percent;
+        const timeEl = document.getElementById('audio-time-' + idx);
+        if (timeEl) timeEl.textContent = cur.toFixed(1) + 's / ' + dur.toFixed(1) + 's';
+
+        const cardProg = document.getElementById('card-prog-' + idx);
+        if (cardProg) cardProg.style.width = percent + '%';
+
+        updateOverallPipelineProgress(idx, cur, dur);
+      };
+
+      audio.onended = function() {
+        timelineState.isPlaying = false;
+        if (card) card.classList.remove('playing');
+        const cardProg = document.getElementById('card-prog-' + idx);
+        if (cardProg) cardProg.style.width = '100%';
+
+        const gapSeconds = typeof row.gapSeconds === 'number' ? row.gapSeconds : 0.6;
+        if (timelineState.isAutoSeq || autoAdvance) {
+          if (statusText) statusText.textContent = '第 ' + (idx + 1) + ' 组完毕，留白气口 ' + gapSeconds + 's 后自动进入下一组...';
+          setTimeout(function() {
+            if (timelineState.activeIndex < rows.length - 1) {
+              selectGroup(timelineState.activeIndex + 1);
+              playCurrentGroup(true);
+            } else {
+              timelineState.isAutoSeq = false;
+              if (dot) dot.classList.remove('is-live');
+              if (statusText) statusText.textContent = '🎉 全流程顺序演播完成！';
+              updatePlayControlsUI();
+              showToast('🎉 全套流水线演播顺利完成！');
+            }
+          }, gapSeconds * 1000);
+        } else {
+          updatePlayControlsUI();
+          if (dot) dot.classList.remove('is-live');
+          if (statusText) statusText.textContent = '第 ' + (idx + 1) + ' 组演播完成';
+        }
+      };
+
+      audio.play().catch(function(err) {
+        console.warn('播放失败:', err);
+        showToast('播放音频失败，可能被浏览器阻止自动播放，请点击播放按钮重试');
+        timelineState.isPlaying = false;
+        updatePlayControlsUI();
+      });
+    }
+
+    function scrubAudio(percent) {
+      if (timelineState.audioPlayer && timelineState.audioPlayer.duration) {
+        timelineState.audioPlayer.currentTime = (percent / 100) * timelineState.audioPlayer.duration;
+      }
+    }
+
+    function triggerBoardAction(index) {
+      const el = document.getElementById('board-step-' + (index + 1));
+      if (el) {
+        el.classList.add('is-active-step');
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function updateOverallPipelineProgress(activeIdx, currentSec, currentDur) {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      let elapsed = 0;
+      for (let i = 0; i < activeIdx; i++) {
+        const r = rows[i];
+        elapsed += (r.audioDuration ? parseFloat(r.audioDuration) : 5) + (typeof r.gapSeconds === 'number' ? r.gapSeconds : 0.6);
+      }
+      elapsed += currentSec;
+
+      const total = timelineState.totalDuration || 1;
+      const percent = Math.min(100, (elapsed / total) * 100);
+      const fill = document.getElementById('pipeline-progress-fill');
+      if (fill) fill.style.width = percent + '%';
+
+      const curEl = document.getElementById('pipeline-current-time');
+      if (curEl) curEl.textContent = formatTimer(Math.round(elapsed));
+
+      // 联动更新可视化时间轴播放头与进度线
+      timelineState.currentTime = elapsed;
+      updateVisualPlayhead(elapsed);
+    }
+
+    function updatePlayControlsUI() {
+      const idx = timelineState.activeIndex;
+      const playIcon = document.getElementById('play-icon-' + idx);
+      if (playIcon) {
+        playIcon.textContent = timelineState.isPlaying ? '⏸' : '▶';
+      }
+
+      const seqBtnIcon = document.getElementById('seq-play-icon');
+      const seqBtnText = document.getElementById('seq-play-text');
+      if (seqBtnIcon && seqBtnText) {
+        if (timelineState.isAutoSeq && timelineState.isPlaying) {
+          seqBtnIcon.textContent = '⏸';
+          seqBtnText.textContent = '暂停流水线';
+        } else {
+          seqBtnIcon.textContent = '▶';
+          seqBtnText.textContent = '顺序连播流水线 (一组接一组)';
+        }
+      }
+    }
+
+    function toggleSequentialPlay() {
+      if (timelineState.isAutoSeq && timelineState.isPlaying) {
+        pauseAudio();
+      } else {
+        timelineState.isAutoSeq = true;
+        playCurrentGroup(true);
+      }
+    }
+
+    function resetPlayback() {
+      pauseAudio();
+      selectGroup(0);
+      timelineState.currentTime = 0;
+      updateVisualPlayhead(0);
+      const fill = document.getElementById('pipeline-progress-fill');
+      if (fill) fill.style.width = '0%';
+      const curEl = document.getElementById('pipeline-current-time');
+      if (curEl) curEl.textContent = '00:00';
+      const statusText = document.getElementById('pipeline-status-text');
+      if (statusText) statusText.textContent = '已重置演播进度，随时可以开始';
+      showToast('已重置演播进度');
+    }
+
+    function previewCurrentSync() {
+      playCurrentGroup(false);
+    }
+
+    /* 🎙️ Fish Audio 语音合成与地址持久化 */
+    async function synthesizeSingleRow(index, event, callback) {
+      if (event) event.stopPropagation();
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[index];
+      if (!row) return;
+
+      const btn = document.getElementById('btn-gen-' + index);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ 合成中...';
+      }
+
+      showToast('🎙️ 正在调用 Fish Audio (s2.1-pro-free) 合成第 ' + (index + 1) + ' 组口播语音...');
+
+      try {
+        const res = await fetch('/api/tts/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: row.speech,
+            model: 's2.1-pro-free',
+            referenceId: '5b00791e193649cd952b48d155fe6b22',
+            projectCode: window.__DELIVERABLE__?.projectCode || 'current'
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.error || '合成失败');
+        }
+
+        row.audioUrl = data.audioUrl;
+        row.audioDuration = data.duration;
+
+        // 更新卡片
+        const durPill = document.getElementById('card-dur-' + index);
+        if (durPill) durPill.textContent = Number(data.duration).toFixed(1) + 's';
+        const audioStatus = document.getElementById('audio-status-' + index);
+        if (audioStatus) {
+          audioStatus.className = 'group-audio-status has-audio';
+          audioStatus.textContent = '🔊 已就绪';
+        }
+
+        // 更新表格单元格
+        updateTableCellAudio(index, data.audioUrl, data.duration);
+
+        // 如果正是当前选中组，更新 inspector
+        if (timelineState.activeIndex === index) {
+          renderTimelineInspector();
+        }
+
+        updateTotalPipelineTime();
+        showToast('🎉 第 ' + (index + 1) + ' 组语音生成成功！时长: ' + Number(data.duration).toFixed(1) + 's');
+
+        // 自动将更新同步到后端
+        await saveSyncData(true);
+
+        if (typeof callback === 'function') {
+          callback();
+        }
+      } catch (err) {
+        console.error('合成语音出错:', err);
+        showToast('❌ 语音合成失败: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🎙️ 合成当前语音 (s2.1-pro-free)';
+        }
+      }
+    }
+
+    async function batchGenerateAllAudios() {
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const batchBtn = document.getElementById('btn-batch-audio');
+      if (batchBtn) {
+        batchBtn.disabled = true;
+        batchBtn.textContent = '⏳ 全套合成中...';
+      }
+
+      let generatedCount = 0;
+      for (let i = 0; i < rows.length; i++) {
+        if (!rows[i].audioUrl) {
+          showToast('🎙️ [' + (i + 1) + '/' + rows.length + '] 正在为第 ' + (i + 1) + ' 组合成 Fish Audio 语音...');
+          try {
+            const res = await fetch('/api/tts/synthesize', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: rows[i].speech,
+                model: 's2.1-pro-free',
+                referenceId: '5b00791e193649cd952b48d155fe6b22',
+                projectCode: window.__DELIVERABLE__?.projectCode || 'current'
+              })
+            });
+            const data = await res.json();
+            if (data.success) {
+              rows[i].audioUrl = data.audioUrl;
+              rows[i].audioDuration = data.duration;
+              generatedCount++;
+
+              const durPill = document.getElementById('card-dur-' + i);
+              if (durPill) durPill.textContent = Number(data.duration).toFixed(1) + 's';
+              const audioStatus = document.getElementById('audio-status-' + i);
+              if (audioStatus) {
+                audioStatus.className = 'group-audio-status has-audio';
+                audioStatus.textContent = '🔊 已就绪';
+              }
+              updateTableCellAudio(i, data.audioUrl, data.duration);
+            }
+          } catch (e) {
+            console.warn('第 ' + (i + 1) + ' 组生成失败:', e);
+          }
+        }
+      }
+
+      renderTimelineInspector();
+      updateTotalPipelineTime();
+      await saveSyncData(true);
+
+      if (batchBtn) {
+        batchBtn.disabled = false;
+        batchBtn.textContent = '⚡ 一键生成全套语音 (免费版)';
+      }
+      showToast('🎉 全套语音生成完毕！共新生成 ' + generatedCount + ' 段音频并已持久化保存！');
+    }
+
+    function updateTableCellAudio(index, audioUrl, duration) {
+      const cell = document.getElementById('table-audio-cell-' + index);
+      if (!cell) return;
+      const rows = window.__DELIVERABLE__?.rows || [];
+      const row = rows[index];
+      const off = row ? (typeof row.syncOffset === 'number' ? row.syncOffset : 0.2) : 0.2;
+      const gap = row ? (typeof row.gapSeconds === 'number' ? row.gapSeconds : 0.6) : 0.6;
+      const durText = Number(duration).toFixed(1) + 's';
+      const fileName = audioUrl.split('/').pop();
+
+      cell.innerHTML = '' +
+        '<div class="audio-badge-active" title="已合成 Fish Audio 音频">' +
+          '<span class="badge-dot"></span>' +
+          '<span class="badge-dur">' + durText + '</span>' +
+        '</div>' +
+        '<div class="audio-actions-mini">' +
+          '<button class="btn-audio-mini play" onclick="playRowAudio(' + index + ', event)" title="试听本组音频">▶</button>' +
+          '<button class="btn-audio-mini copy" onclick="copyAudioUrl('' + escapeHtmlClient(audioUrl) + '', event)" title="复制音频直链">📋</button>' +
+          '<a class="btn-audio-mini link" href="' + escapeHtmlClient(audioUrl) + '" target="_blank" download="speech-step-' + (index + 1) + '.mp3" title="下载 MP3">📥</a>' +
+        '</div>' +
+        '<div class="audio-link-text" title="' + escapeHtmlClient(audioUrl) + '">' + escapeHtmlClient(fileName) + '</div>' +
+        '<div class="table-sync-meta">' +
+          '延时:' + off.toFixed(1) + 's · 气口:' + gap.toFixed(1) + 's' +
+        '</div>';
+    }
+
+    function copyAudioUrl(url, event) {
+      if (event) event.stopPropagation();
+      const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(function() {
+        showToast('✓ 音频直链已复制到剪贴板！');
+      }).catch(function() {
+        prompt('请复制音频地址:', fullUrl);
+      });
+    }
+
+    /* 保存时序数据到后端 */
+    async function saveSyncData(silent) {
+      if (silent === undefined) silent = false;
+      const projectCode = window.__DELIVERABLE__?.projectCode || 'current';
+      const rows = window.__DELIVERABLE__?.rows || [];
+
+      try {
+        const res = await fetch('/api/deliverable/update-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectCode, rows })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (!silent) showToast('✓ 时序微调参数与音频直链已成功保存到当前交付产物！');
+        } else {
+          throw new Error(data.error || '保存失败');
+        }
+      } catch (err) {
+        console.error('保存时序配置失败:', err);
+        if (!silent) showToast('❌ 保存失败: ' + err.message);
+      }
+    }
+
+    // 页面加载完成后自动初始化时间轴
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTimeline);
+    } else {
+      initTimeline();
     }
   </script>
 </body>

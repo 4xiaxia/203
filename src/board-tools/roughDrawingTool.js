@@ -70,11 +70,17 @@ function normalizeCommonAction(action) {
   ) {
     throw new Error('绘制时长、抬笔间隔与随机种子由程序计算，Agent 不得覆盖')
   }
+  const rawDelay = action.startDelay ?? action.syncOffset
+  const startDelay = typeof rawDelay === 'number' ? Math.max(0, Math.round(rawDelay * 10) / 10) : (rawDelay ? parseFloat(rawDelay) : undefined)
+  const triggerWord = typeof action.triggerWord === 'string' && action.triggerWord.trim() ? action.triggerWord.trim() : undefined
+
   return {
     tool: action.tool,
     region: action.region,
     order,
     style: normalizeStyle(action.style),
+    ...(startDelay !== undefined && !isNaN(startDelay) ? { startDelay, syncOffset: startDelay } : {}),
+    ...(triggerWord ? { triggerWord } : {}),
   }
 }
 

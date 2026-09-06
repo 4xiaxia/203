@@ -1,5 +1,6 @@
 /* @qh-core LANE=B-V2 POINT=CONTRACT_NORMALIZE model rows into board-readable fields */
 import { validateBoardToolAction } from '../board-tools/boardToolCatalog.js'
+import { calculateSpeechAnchorTimestamp } from './timing.js'
 export const AGENT_B_V2_COLUMNS = Object.freeze([
   'stage',
   'speech',
@@ -37,13 +38,21 @@ function normalizeStage(stage, index) {
   return fallback
 }
 
-// board 双兼容：v1.0 字符串 / v2.0 对象 {startCoord, content}
+// board 双兼容：v1.0 字符串 / v2.0 对象 {startCoord, content, startDelay, triggerWord}
 // 统一归一化为 v2.0 对象格式输出
 export function normalizeBoard(board) {
   if (isRecord(board)) {
+    const rawOffset = board.syncOffset ?? board.startDelay
+    const offsetNum = typeof rawOffset === 'number' ? rawOffset : (rawOffset ? parseFloat(rawOffset) : undefined)
+    const trigger = typeof board.triggerWord === 'string' ? board.triggerWord.trim() : ''
     return {
       startCoord: typeof board.startCoord === 'string' ? board.startCoord : '',
       content: typeof board.content === 'string' ? board.content : '',
+      ...(offsetNum !== undefined && !isNaN(offsetNum) ? {
+        syncOffset: Math.max(0, Math.round(offsetNum * 10) / 10),
+        startDelay: Math.max(0, Math.round(offsetNum * 10) / 10),
+      } : {}),
+      ...(trigger ? { triggerWord: trigger } : {}),
     }
   }
   if (typeof board === 'string') {
@@ -108,19 +117,130 @@ export function normalizeAgentBV2ActionSpec(actionSpec) {
 
     const action = validateBoardToolAction(entry.action)
     if (!action.ok) return []
-    return [{ ...entry, action: action.value }]
+
+    // 提取并保留起手时间与触发关键词
+    const rawDelay = entry.action?.startDelay ?? entry.action?.syncOffset ?? entry.startDelay ?? entry.syncOffset
+    const startDelay = typeof rawDelay === 'number' ? Math.max(0, Math.round(rawDelay * 10) / 10) : (rawDelay ? parseFloat(rawDelay) : undefined)
+    const rawTrigger = entry.action?.triggerWord ?? entry.triggerWord
+    const triggerWord = typeof rawTrigger === 'string' && rawTrigger.trim() ? rawTrigger.trim() : undefined
+
+    const timingExtra = {
+      ...(startDelay !== undefined && !isNaN(startDelay) ? { startDelay, syncOffset: startDelay } : {}),
+      ...(triggerWord ? { triggerWord } : {}),
+    }
+
+    return [{
+      ...entry,
+      ...timingExtra,
+      action: {
+        ...action.value,
+        ...timingExtra,
+      },
+    }]
   })
 }
 
+// 解析并防粘连板书起手坐标
+function parseCoord(coordStr) {
+  if (!coordStr || typeof coordStr !== 'string') return null
+  const m = coordStr.match(/[\[\(]?\s*([\d.]+)\s*(%?)\s*,\s*([\d.]+)\s*(%?)\s*[\]\)]?/)
+  if (!m) return null
+  const isPercent = m[2] === '%' || m[4] === '%' || (parseFloat(m[1]) <= 100 && parseFloat(m[3]) <= 100)
+  return {
+    x: parseFloat(m[1]),
+    y: parseFloat(m[3]),
+    isPercent,
+  }
+}
+
 export function normalizeAgentBV2BoardCells(rows) {
+  const lastStateByStage = {}
+
   return (Array.isArray(rows) ? rows : []).flatMap((row, index) => {
     if (!isRecord(row)) return []
+    const board = normalizeBoard(row.board)
+    const stage = normalizeStage(row.stage, index)
+    const speech = typeof row.speech === 'string' ? row.speech : ''
+
+    // 行级与板书级起手时间、触发词双向协同
+    let rawOffset = row.syncOffset ?? row.startDelay ?? board.syncOffset ?? board.startDelay
+    const triggerWord = typeof row.triggerWord === 'string' && row.triggerWord.trim()
+      ? row.triggerWord.trim()
+      : (typeof board.triggerWord === 'string' && board.triggerWord.trim() ? board.triggerWord.trim() : undefined)
+
+    // 若有触发词且未定秒数，根据在口播中的文本识别位置动态精准推算起始时间戳
+    if ((rawOffset === undefined || isNaN(rawOffset)) && triggerWord && speech) {
+      const timingCalc = calculateSpeechAnchorTimestamp(speech, triggerWord)
+      if (timingCalc.matched) {
+        rawOffset = timingCalc.finalOffset
+      } else {
+        rawOffset = 0.2
+      }
+    }
+
+    const syncOffset = typeof rawOffset === 'number'
+      ? Math.max(0, Math.round(rawOffset * 10) / 10)
+      : (rawOffset ? parseFloat(rawOffset) : undefined)
+
+    if (syncOffset !== undefined && !isNaN(syncOffset)) {
+      board.syncOffset = syncOffset
+      board.startDelay = syncOffset
+    }
+    if (triggerWord) {
+      board.triggerWord = triggerWord
+    }
+
+    // 【起手坐标防粘连智能间距保护】
+    // 检查同一环节内连续两个有板书内容的小步骤是否坐标粘连
+    if (board.content && board.startCoord) {
+      const parsed = parseCoord(board.startCoord)
+      if (parsed) {
+        const last = lastStateByStage[stage]
+        if (last && last.y !== undefined) {
+          const prevLines = last.lines || 1
+          if (parsed.isPercent) {
+            const minGap = prevLines * 7 + 4 // 每行约7%高 + 4%呼吸留白
+            if (parsed.y <= last.y + 3 || parsed.y < last.y + minGap) {
+              const spacedY = Math.min(92, Math.round((last.y + minGap) * 10) / 10)
+              board.startCoord = `[${parsed.x}%, ${spacedY}%]`
+              parsed.y = spacedY
+            }
+          } else {
+            const minGapPx = prevLines * 36 + 24
+            if (parsed.y <= last.y + 10 || parsed.y < last.y + minGapPx) {
+              const spacedY = Math.round(last.y + minGapPx)
+              board.startCoord = `[${parsed.x}, ${spacedY}]`
+              parsed.y = spacedY
+            }
+          }
+        }
+        const currentLines = Math.max(1, board.content.split('\n').length)
+        lastStateByStage[stage] = { x: parsed.x, y: parsed.y, lines: currentLines }
+      }
+    }
+
+    // 动作内起手延时与触发词根据口播协同补全
+    const rawActionSpec = normalizeAgentBV2ActionSpec(row.actionSpec).map(entry => {
+      if (entry.action && entry.action.triggerWord && entry.action.startDelay === undefined && speech) {
+        const actPos = speech.indexOf(entry.action.triggerWord)
+        if (actPos >= 0) {
+          const actOffset = Math.max(0.2, Math.round((actPos / 2.67) * 10) / 10)
+          entry.action.startDelay = actOffset
+          entry.action.syncOffset = actOffset
+          entry.startDelay = actOffset
+          entry.syncOffset = actOffset
+        }
+      }
+      return entry
+    })
+
     return [{
-      stage: normalizeStage(row.stage, index),
-      speech: typeof row.speech === 'string' ? row.speech : '',
-      board: normalizeBoard(row.board),
-      // 模型偶尔漏写 actionSpec 或动作不合规，保留该行而不是卡死整表。
-      actionSpec: normalizeAgentBV2ActionSpec(row.actionSpec),
+      stage,
+      speech,
+      board,
+      ...(syncOffset !== undefined && !isNaN(syncOffset) ? { syncOffset, startDelay: syncOffset } : {}),
+      ...(triggerWord ? { triggerWord } : {}),
+      actionSpec: rawActionSpec,
     }]
   })
 }

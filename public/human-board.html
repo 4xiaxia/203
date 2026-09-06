@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>平行四边形面积 · 仿人板书真画布（直拖直缩放）</title>
+<!-- 板书手写字体 -->
+<link href="https://fontsapi.zeoseven.com/157/main/result.css" rel="stylesheet">
+<link href="https://fontsapi.zeoseven.com/490/main/result.css" rel="stylesheet">
+<link href="https://fontsapi.zeoseven.com/511/main/result.css" rel="stylesheet">
+<link href="https://fontsapi.zeoseven.com/510/main/result.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+<style>
+@import url("https://fontsapi.zeoseven.com/509/main/result.css");
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#2563eb;
+  --primary-hover:#1d4ed8;
+  --bg-app:#0f172a;
+  --panel-bg:rgba(255,255,255,0.92);
+  --border-color:#e2e8f0;
+}
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#0b1120;
+  font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+  color:#1e293b;
+  user-select:none;
+}
+
+/* 顶部超轻悬浮状态导航栏 */
+.top-nav{
+  position:fixed;
+  top:12px;
+  left:16px;
+  right:16px;
+  height:46px;
+  background:rgba(15,23,42,0.85);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  z-index:100;
+  box-shadow:0 8px 32px rgba(0,0,0,0.36);
+}
+.nav-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.nav-title{
+  color:#f8fafc;
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.nav-badge{
+  font-size:11px;
+  background:rgba(37,99,235,0.25);
+  color:#60a5fa;
+  border:1px solid rgba(96,165,250,0.3);
+  padding:2px 8px;
+  border-radius:6px;
+}
+.nav-data-source{
+  display:flex;
+  align-items:center;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:2px;
+  gap:2px;
+}
+.source-btn{
+  background:transparent;
+  border:none;
+  color:#94a3b8;
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.source-btn.active{
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
+.source-btn:hover:not(.active){
+  background:rgba(255,255,255,0.08);
+  color:#f1f5f9;
+}
+
+.nav-center{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.btn-mini{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#e2e8f0;
+  font-size:12px;
+  padding:5px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  transition:all .15s ease;
+}
+.btn-mini:hover{
+  background:rgba(255,255,255,0.16);
+  color:#ffffff;
+  border-color:rgba(255,255,255,0.3);
+}
+.btn-mini.active{
+  background:#10b981;
+  color:#fff;
+  border-color:#10b981;
+}
+
+/* 缩放与视图控制小手柄 */
+.zoom-controls{
+  display:flex;
+  align-items:center;
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  overflow:hidden;
+}
+.zoom-btn{
+  background:transparent;
+  border:none;
+  color:#cbd5e1;
+  padding:4px 9px;
+  cursor:pointer;
+  font-size:13px;
+  transition:background .15s;
+}
+.zoom-btn:hover{
+  background:rgba(255,255,255,0.15);
+  color:#fff;
+}
+.zoom-text{
+  font-size:11px;
+  color:#94a3b8;
+  padding:0 6px;
+  min-width:44px;
+  text-align:center;
+  font-family:monospace;
+}
+
+/* 主画布视口：支持整体平移与缩放 */
+.canvas-viewport{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:grab;
+}
+.canvas-viewport.panning{
+  cursor:grabbing;
+}
+
+/* 舞台容器：1726 x 980 固定逻辑像素，通过 transform: matrix / scale 渲染 */
+.canvas-stage{
+  position:relative;
+  width:1726px;
+  height:980px;
+  transform-origin:center center;
+  background-image:url(/canvas.png);
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  border-radius:12px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.15);
+  transition:none;
+}
+
+/* 画布底层 rough.js */
+#cv{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:2;
+}
+
+/* 角标（支持直接鼠标拖拽） */
+.draggable-badge{
+  position:absolute;
+  z-index:20;
+  cursor:move;
+  transition:box-shadow .15s ease, outline .15s ease;
+  user-select:none;
+}
+.draggable-badge img{
+  display:block;
+  width:100%;
+  height:auto;
+  pointer-events:none;
+}
+.draggable-badge:hover, .draggable-badge.dragging{
+  outline:2px dashed #3b82f6;
+  outline-offset:2px;
+  box-shadow:0 4px 16px rgba(59,130,246,0.4);
+}
+.draggable-badge .badge-coord-tip{
+  position:absolute;
+  bottom:-22px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(15,23,42,0.9);
+  color:#38bdf8;
+  font-size:11px;
+  font-family:monospace;
+  padding:1px 6px;
+  border-radius:4px;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s;
+}
+.draggable-badge:hover .badge-coord-tip, .draggable-badge.dragging .badge-coord-tip{
+  opacity:1;
+}
+
+/* 四个阶段区域容器（支持鼠标直接拖拽整体与右下角缩放拉伸手柄） */
+.stage-region{
+  position:absolute;
+  z-index:10;
+  box-sizing:border-box;
+  overflow:visible;
+  border-radius:6px;
+  transition:border .15s ease, background .15s ease;
+}
+.stage-region.debug-mode{
+  border:1px dashed rgba(14,165,233,0.45);
+  background:rgba(14,165,233,0.02);
+}
+.stage-region.region-question.debug-mode{ border-color:rgba(239,68,68,0.45); background:rgba(239,68,68,0.02); }
+.stage-region.region-analysis.debug-mode{ border-color:rgba(14,165,233,0.45); background:rgba(14,165,233,0.02); }
+.stage-region.region-solution.debug-mode{ border-color:rgba(16,185,129,0.45); background:rgba(16,185,129,0.02); }
+.stage-region.region-summary.debug-mode{ border-color:rgba(168,85,247,0.45); background:rgba(168,85,247,0.02); }
+
+/* 区域拖动模式下的可操作状态 */
+.drag-enabled .stage-region{
+  cursor:move;
+}
+.drag-enabled .stage-region:hover{
+  outline:2px solid #60a5fa;
+  outline-offset:1px;
+  background:rgba(96,165,250,0.06);
+}
+.drag-enabled .stage-region.selected{
+  outline:2px solid #2563eb;
+  background:rgba(37,99,235,0.08);
+}
+
+/* 区域右下角缩放把手 */
+.region-resize-handle{
+  position:absolute;
+  bottom:-4px;
+  right:-4px;
+  width:12px;
+  height:12px;
+  background:#2563eb;
+  border:2px solid #ffffff;
+  border-radius:50%;
+  cursor:nwse-resize;
+  z-index:30;
+  display:none;
+}
+.drag-enabled .stage-region:hover .region-resize-handle,
+.drag-enabled .stage-region.selected .region-resize-handle{
+  display:block;
+}
+
+/* 区域坐标信息指示 */
+.region-info-tag{
+  position:absolute;
+  top:-20px;
+  left:0;
+  font-size:11px;
+  font-family:monospace;
+  background:rgba(15,23,42,0.85);
+  color:#cbd5e1;
+  padding:1px 6px;
+  border-radius:4px;
+  pointer-events:none;
+  display:none;
+}
+.drag-enabled .stage-region:hover .region-info-tag,
+.drag-enabled .stage-region.selected .region-info-tag{
+  display:block;
+}
+
+/* 板书内容条目（按 row 结对子；支持在画布上鼠标直接拖动起手坐标！） */
+.board-row-item{
+  position:absolute;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.75;
+  transition:clip-path 0.05s linear;
+  cursor:move;
+  user-select:none;
+}
+.board-row-item.active-row{
+  outline:2px solid #f59e0b;
+  outline-offset:3px;
+  border-radius:4px;
+  background:rgba(245,158,11,0.08);
+}
+.board-row-item:hover{
+  outline:1px dashed #f59e0b;
+  outline-offset:2px;
+}
+.board-row-drag-tip{
+  position:absolute;
+  top:-24px;
+  left:0;
+  background:#f59e0b;
+  color:#fff;
+  font-size:10px;
+  padding:1px 6px;
+  border-radius:4px;
+  font-weight:700;
+  font-family:monospace;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.board-row-item:hover .board-row-drag-tip,
+.board-row-item.dragging .board-row-drag-tip{
+  opacity:1;
+}
+
+/* 底部轻量控制器：口播 + 播放条 + 结对步骤切歌器 */
+.bottom-dock{
+  position:fixed;
+  bottom:16px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(960px, calc(100vw - 32px));
+  background:rgba(15,23,42,0.92);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:16px;
+  padding:12px 20px;
+  z-index:100;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* 结对 Row 快捷导航药丸 */
+.rows-pills-bar{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:2px;
+}
+.rows-pills-bar::-webkit-scrollbar{
+  height:4px;
+}
+.rows-pills-bar::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.2);
+  border-radius:2px;
+}
+.row-pill{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#94a3b8;
+  font-size:11px;
+  padding:3px 10px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.row-pill:hover{
+  background:rgba(255,255,255,0.12);
+  color:#e2e8f0;
+}
+.row-pill.active{
+  background:#2563eb;
+  border-color:#3b82f6;
+  color:#ffffff;
+  font-weight:600;
+}
+.pill-stage-tag{
+  font-size:9px;
+  padding:1px 5px;
+  border-radius:4px;
+  background:rgba(0,0,0,0.25);
+}
+
+/* 口播文本条 */
+.speech-dock-bar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(0,0,0,0.35);
+  border-radius:10px;
+  padding:8px 14px;
+}
+.speech-avatar{
+  font-size:16px;
+  flex-shrink:0;
+}
+.speech-content{
+  flex:1;
+  font-size:13px;
+  color:#e2e8f0;
+  line-height:1.5;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.speech-stat{
+  font-size:11px;
+  color:#38bdf8;
+  font-family:monospace;
+  flex-shrink:0;
+}
+
+/* 播放进度控制器 */
+.play-control-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.btn-play-toggle{
+  background:#2563eb;
+  border:none;
+  color:#fff;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:14px;
+  transition:transform .15s, background .15s;
+  flex-shrink:0;
+}
+.btn-play-toggle:hover{
+  background:#1d4ed8;
+  transform:scale(1.06);
+}
+.btn-step{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#cbd5e1;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  flex-shrink:0;
+  transition:background .15s;
+}
+.btn-step:hover{
+  background:rgba(255,255,255,0.18);
+  color:#fff;
+}
+.progress-slider{
+  flex:1;
+  height:5px;
+  -webkit-appearance:none;
+  appearance:none;
+  background:rgba(255,255,255,0.18);
+  border-radius:3px;
+  outline:none;
+  cursor:pointer;
+}
+.progress-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#38bdf8;
+  cursor:pointer;
+  box-shadow:0 0 8px rgba(56,189,248,0.8);
+  border:2px solid #ffffff;
+}
+.time-display{
+  font-size:12px;
+  color:#94a3b8;
+  font-family:monospace;
+  min-width:85px;
+  text-align:right;
+  flex-shrink:0;
+}
+
+/* 吐司通知 */
+.toast-msg{
+  position:fixed;
+  top:70px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(15,23,42,0.95);
+  color:#38bdf8;
+  border:1px solid rgba(56,189,248,0.35);
+  padding:6px 16px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  z-index:200;
+  pointer-events:none;
+  opacity:0;
+  transition:all .2s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.toast-msg.show{
+  opacity:1;
+  top:76px;
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部超轻导航栏 -->
+<header class="top-nav">
+  <div class="nav-left">
+    <div class="nav-title">
+      <span>📐 仿人板书真画布</span>
+      <span class="nav-badge">直拖直缩放 · 按Row结对</span>
+    </div>
+    <div class="nav-data-source">
+      <button class="source-btn active" id="btnSourceLive" title="从最新生成表/handoff自动读取">⚡ 实时项目数据</button>
+      <button class="source-btn" id="btnSourceDemo" title="加载夏夏平行四边形面积演示样题">📐 平行四边形样题</button>
+    </div>
+  </div>
+
+  <div class="nav-center">
+    <!-- 缩放控制器 -->
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="btnZoomOut" title="缩小 (快捷键 滚轮向下)">−</button>
+      <span class="zoom-text" id="zoomText">100%</span>
+      <button class="zoom-btn" id="btnZoomIn" title="放大 (快捷键 滚轮向上)">+</button>
+      <button class="zoom-btn" id="btnZoomFit" title="自适应窗口大小">适应</button>
+      <button class="zoom-btn" id="btnZoomReset" title="重置为100%">1:1</button>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <button class="btn-mini" id="btnToggleDrag" title="切换是否允许直接在画布上拖拽落座">
+      <span>🖐️ 自由拖动定位:</span>
+      <strong id="dragStatusText" style="color:#38bdf8">开</strong>
+    </button>
+    <button class="btn-mini" id="btnToggleGuides" title="显示或隐藏区域参考边框">
+      <span>📐 参考框</span>
+    </button>
+    <button class="btn-mini" id="btnExportJson" title="导出包含最新落座坐标的参数 JSON">
+      <span>💾 导出参数</span>
+    </button>
+  </div>
+</header>
+
+<!-- 主视口（支持平移与滚轮缩放） -->
+<main class="canvas-viewport" id="canvasViewport">
+  <div class="canvas-stage" id="canvasStage">
+    <!-- rough.js 底层 Canvas -->
+    <canvas id="cv" width="1726" height="980"></canvas>
+
+    <!-- 4 个角标图片（直接鼠标拖拽） -->
+    <div class="draggable-badge" id="badge-topic" data-badge="topic" style="left:5.7%; top:6.6%; width:7.1%;">
+      <img src="https://i.ibb.co/bMwPqBpN/topic.png" alt="题目"/>
+      <div class="badge-coord-tip" id="tip-topic">x: 5.7%, y: 6.6%</div>
+    </div>
+    <div class="draggable-badge" id="badge-analysis" data-badge="analysis" style="left:5.7%; top:34.5%; width:7.2%;">
+      <img src="https://i.ibb.co/9mHsQPSx/analysis.png" alt="分析"/>
+      <div class="badge-coord-tip" id="tip-analysis">x: 5.7%, y: 34.5%</div>
+    </div>
+    <div class="draggable-badge" id="badge-solution" data-badge="solution" style="left:53.7%; top:6.6%; width:7.4%;">
+      <img src="https://i.ibb.co/MxXq10wz/solution.png" alt="解答"/>
+      <div class="badge-coord-tip" id="tip-solution">x: 53.7%, y: 6.6%</div>
+    </div>
+    <div class="draggable-badge" id="badge-summary" data-badge="summary" style="left:53.7%; top:62.0%; width:7.2%;">
+      <img src="https://i.ibb.co/Ld4qjwW9/summary.png" alt="总结"/>
+      <div class="badge-coord-tip" id="tip-summary">x: 53.7%, y: 62.0%</div>
+    </div>
+
+    <!-- 4 个区域容器（直接鼠标拖拽与右下角缩放拉手） -->
+    <div class="stage-region region-question debug-mode" id="region-question" data-region="question" style="left:6%; top:10%; width:44%; height:18%;">
+      <div class="region-info-tag">题目区域 (q)</div>
+      <div class="region-resize-handle" data-resize="question"></div>
+      <div id="content-question" style="width:100%; height:100%; overflow:hidden;"></div>
+    </div>
+
+    <div class="stage-region region-analysis debug-mode" id="region-analysis" data-region="analysis" style="left:6%; top:41%; width:44%; height:48%;">
+      <div class="region-info-tag">分析区域 (a)</div>
+      <div class="region-resize-handle" data-resize="analysis"></div>
+      <div id="content-analysis" style="width:100%; height:100%; position:relative;"></div>
+    </div>
+
+    <div class="stage-region region-solution debug-mode" id="region-solution" data-region="solution" style="left:54%; top:14%; width:40%; height:44%;">
+      <div class="region-info-tag">解答区域 (s)</div>
+      <div class="region-resize-handle" data-resize="solution"></div>
+      <div id="content-solution" style="width:100%; height:100%; position:relative;"></div>
+    </div>
+
+    <div class="stage-region region-summary debug-mode" id="region-summary" data-region="summary" style="left:54%; top:69.5%; width:40%; height:22%;">
+      <div class="region-info-tag">总结区域 (u)</div>
+      <div class="region-resize-handle" data-resize="summary"></div>
+      <div id="content-summary" style="width:100%; height:100%; position:relative;"></div>
+    </div>
+  </div>
+</main>
+
+<!-- 底部超轻操作坞（结对Row药丸 + 口播显示 + 进度播放条） -->
+<footer class="bottom-dock">
+  <!-- 结对 Row 导航胶囊条 -->
+  <div class="rows-pills-bar" id="rowsPillsBar">
+    <!-- 动态生成 row 结对胶囊 -->
+  </div>
+
+  <!-- 当前结对步骤口播台词 -->
+  <div class="speech-dock-bar">
+    <div class="speech-avatar">🎙️</div>
+    <div class="speech-content" id="liveSpeechText">口播文案准备中…</div>
+    <div class="speech-stat" id="liveSpeechStat">第 1 步 / 共 7 步</div>
+  </div>
+
+  <!-- 播放进度与控制条 -->
+  <div class="play-control-row">
+    <button class="btn-step" id="btnPrevStep">◀ 上一步</button>
+    <button class="btn-play-toggle" id="btnPlayToggle" title="播放 / 暂停">▶</button>
+    <button class="btn-step" id="btnNextStep">下一步 ▶</button>
+    <input type="range" class="progress-slider" id="timelineSlider" min="0" max="100" value="0" step="0.1">
+    <div class="time-display" id="timelineDisplay">0.0s / 0.0s</div>
+  </div>
+</footer>
+
+<!-- 浮动操作反馈吐司 -->
+<div class="toast-msg" id="toastMsg"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 1. 核心状态架构：按 row 结对子，告别沉重庞杂的侧边栏！
+// ═══════════════════════════════════════════════════════════════
+const DESIGN_W = 1726;
+const DESIGN_H = 980;
+
+// 画布视口平移与缩放状态
+const viewportState = {
+  scale: 1,
+  tx: 0,
+  ty: 0,
+  isPanning: false,
+  panStartX: 0,
+  panStartY: 0,
+  initialTx: 0,
+  initialTy: 0,
+};
+
+// 拖拽落座配置
+let isDragModeEnabled = true;
+let showGuides = true;
+
+// 角标位置 (百分比)
+const badges = {
+  topic: { x: 5.7, y: 6.6, w: 7.1 },
+  analysis: { x: 5.7, y: 34.5, w: 7.2 },
+  solution: { x: 53.7, y: 6.6, w: 7.4 },
+  summary: { x: 53.7, y: 62.0, w: 7.2 }
+};
+
+// 四大区域位置与大小 (百分比)
+const regions = {
+  question: { x: 6.0, y: 10.0, w: 44.0, h: 18.0 },
+  analysis: { x: 6.0, y: 41.0, w: 44.0, h: 48.0 },
+  solution: { x: 54.0, y: 14.0, w: 40.0, h: 44.0 },
+  summary: { x: 54.0, y: 69.5, w: 40.0, h: 22.0 }
+};
+
+// 题目信息
+let problemData = {
+  text: '甲、乙两地相距一千米，A、B两人分别从甲、乙两地同时出发，在甲、乙两地之间往返散步。两人第一次相遇时距中点五十米，如果B的速度比A快，那么两人第二次相遇的地点距乙地多少米？',
+  imageUrl: ''
+};
+
+// 结对 rows 列表（纯粹的五字段教学结对，一条 row 对应一个教学落笔动作）
+let rowsData = [];
+
+// 经典样题：平行四边形面积演示数据（夏夏的几何标准模板）
+const DEMO_ROWS = [
+  {
+    stage: '题目',
+    speech: '同学们，请看这道题：已知平行四边形 ABCD，底边 AB 长度为 9 厘米，高为 20.4 厘米。',
+    board: { startCoord: '[8%, 12%]', content: '已知：底 a = 9 cm，高 h = 20.4 cm' },
+    duration: '3.5秒'
+  },
+  {
+    stage: '分析',
+    speech: '首先，我们从顶点 D 向底边 AB 引一条垂线 DE，这条垂线就是平行四边形的高。',
+    board: { startCoord: '[8%, 44%]', content: '1. <b>垂线 DE 为高</b><br>   h = 20.4 cm' },
+    duration: '3.8秒'
+  },
+  {
+    stage: '分析',
+    speech: '这条高把图形分割成了左边的直角三角形 ADE，和右边的梯形 DEBC。',
+    board: { startCoord: '[8%, 56%]', content: '2. <b>图形分割</b><br>   左边 △ADE + 右边 梯形 DEBC' },
+    duration: '3.6秒'
+  },
+  {
+    stage: '解答',
+    speech: '方法一：直接利用平行四边形面积公式，面积等于底乘以高。',
+    board: { startCoord: '[56%, 16%]', content: '<b>方法一：公式法</b><br>S = a × h<br>= 9 × 20.4' },
+    duration: '3.5秒'
+  },
+  {
+    stage: '解答',
+    speech: '算得 S 等于 183.6 平方厘米。',
+    board: { startCoord: '[56%, 28%]', content: '<b>S = 183.6 (cm²)</b>' },
+    duration: '2.8秒'
+  },
+  {
+    stage: '总结',
+    speech: '回顾本题：复杂图形通过作高分割成基本图形，两相验证，直观清晰！',
+    board: { startCoord: '[56%, 72%]', content: '<b>总结：</b>割补转换，化繁为简。' },
+    duration: '3.2秒'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// 2. 播放时序与时间轴
+// ═══════════════════════════════════════════════════════════════
+let activeRowIndex = 0;
+let currentTime = 0;
+let totalDuration = 1;
+let isPlaying = false;
+let playAnimFrame = null;
+let timelineSegments = [];
+
+function buildTimeline() {
+  timelineSegments = [];
+  let t = 0;
+  rowsData.forEach((row, idx) => {
+    const rawDur = parseFloat(row.duration) || 3.2;
+    const dur = Math.max(1.2, rawDur);
+    timelineSegments.push({
+      index: idx,
+      stage: row.stage,
+      startTime: t,
+      duration: dur,
+      endTime: t + dur
+    });
+    t += dur + 0.3; // 步间留微小停顿
+  });
+  totalDuration = Math.max(0.1, t);
+  const slider = document.getElementById('timelineSlider');
+  if (slider) slider.max = totalDuration.toFixed(1);
+  updateTimeUI();
+}
+
+function updateTimeUI() {
+  const slider = document.getElementById('timelineSlider');
+  const display = document.getElementById('timelineDisplay');
+  const toggleBtn = document.getElementById('btnPlayToggle');
+  if (slider) slider.value = currentTime.toFixed(1);
+  if (display) display.textContent = `${currentTime.toFixed(1)}s / ${totalDuration.toFixed(1)}s`;
+  if (toggleBtn) toggleBtn.textContent = isPlaying ? '⏸' : '▶';
+}
+
+function renderBoardByTime() {
+  // 根据当前时间计算哪一行正在播放，并驱动逐行 clipPath 揭示
+  let currentActive = 0;
+  timelineSegments.forEach((seg) => {
+    const rowEl = document.getElementById(`board-row-el-${seg.index}`);
+    if (!rowEl) return;
+    if (currentTime < seg.startTime) {
+      rowEl.style.clipPath = 'inset(0 100% 0 0)';
+    } else if (currentTime >= seg.endTime) {
+      rowEl.style.clipPath = 'inset(0 0% 0 0)';
+      currentActive = seg.index;
+    } else {
+      const progress = (currentTime - seg.startTime) / seg.duration;
+      rowEl.style.clipPath = `inset(0 ${(1 - progress) * 100}% 0 0)`;
+      currentActive = seg.index;
+    }
+  });
+
+  if (activeRowIndex !== currentActive) {
+    setActiveRow(currentActive, false);
+  }
+}
+
+function startPlay() {
+  if (currentTime >= totalDuration - 0.05) currentTime = 0;
+  isPlaying = true;
+  updateTimeUI();
+  let lastTime = performance.now();
+
+  function loop(now) {
+    if (!isPlaying) return;
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+    currentTime += dt;
+    if (currentTime >= totalDuration) {
+      currentTime = totalDuration;
+      pausePlay();
+    }
+    updateTimeUI();
+    renderBoardByTime();
+    if (isPlaying) playAnimFrame = requestAnimationFrame(loop);
+  }
+  playAnimFrame = requestAnimationFrame(loop);
+}
+
+function pausePlay() {
+  isPlaying = false;
+  if (playAnimFrame) {
+    cancelAnimationFrame(playAnimFrame);
+    playAnimFrame = null;
+  }
+  updateTimeUI();
+}
+
+function togglePlay() {
+  if (isPlaying) pausePlay();
+  else startPlay();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 3. 画布视口平移与无级缩放（夏夏好想要的直接缩放！）
+// ═══════════════════════════════════════════════════════════════
+const viewport = document.getElementById('canvasViewport');
+const stage = document.getElementById('canvasStage');
+
+function applyViewportTransform() {
+  stage.style.transform = `translate(${viewportState.tx}px, ${viewportState.ty}px) scale(${viewportState.scale})`;
+  document.getElementById('zoomText').textContent = `${Math.round(viewportState.scale * 100)}%`;
+}
+
+function zoom(factor, clientX, clientY) {
+  const oldScale = viewportState.scale;
+  let newScale = oldScale * factor;
+  newScale = Math.min(2.8, Math.max(0.35, newScale));
+
+  // 以鼠标所指位置为锚点缩放
+  const rect = stage.getBoundingClientRect();
+  const originX = clientX !== undefined ? clientX - rect.left - rect.width / 2 : 0;
+  const originY = clientY !== undefined ? clientY - rect.top - rect.height / 2 : 0;
+
+  viewportState.tx -= originX * (newScale / oldScale - 1);
+  viewportState.ty -= originY * (newScale / oldScale - 1);
+  viewportState.scale = newScale;
+  applyViewportTransform();
+}
+
+function fitToScreen() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const pad = 90;
+  const scaleX = (vw - pad) / DESIGN_W;
+  const scaleY = (vh - 160) / DESIGN_H;
+  viewportState.scale = Math.min(scaleX, scaleY, 1.0);
+  viewportState.tx = 0;
+  viewportState.ty = -10;
+  applyViewportTransform();
+  showToast('已自适应窗口大小');
+}
+
+// 鼠标滚轮无级缩放
+viewport.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.08 : 0.92;
+  zoom(factor, e.clientX, e.clientY);
+}, { passive: false });
+
+// 鼠标拖拽平移画布（按住空格或中键，或在空白处直接拖拽）
+viewport.addEventListener('mousedown', (e) => {
+  // 若点在可拖拽元素上，则不触发画布平移
+  if (e.target.closest('.draggable-badge') || e.target.closest('.stage-region') || e.target.closest('.board-row-item')) {
+    return;
+  }
+  viewportState.isPanning = true;
+  viewportState.panStartX = e.clientX;
+  viewportState.panStartY = e.clientY;
+  viewportState.initialTx = viewportState.tx;
+  viewportState.initialTy = viewportState.ty;
+  viewport.classList.add('panning');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!viewportState.isPanning) return;
+  viewportState.tx = viewportState.initialTx + (e.clientX - viewportState.panStartX);
+  viewportState.ty = viewportState.initialTy + (e.clientY - viewportState.panStartY);
+  applyViewportTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  if (viewportState.isPanning) {
+    viewportState.isPanning = false;
+    viewport.classList.remove('panning');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 4. 画布直接拖动落座 (Direct Drag & Drop Positioning)
+// ═══════════════════════════════════════════════════════════════
+
+// 统一拖拽管理器：消除百分比计算与缩放比例的误差
+function makeElementDraggable(el, options = {}) {
+  let isDragging = false;
+  let startMouseX = 0;
+  let startMouseY = 0;
+  let startLeftPct = 0;
+  let startTopPct = 0;
+  let parentRect = null;
+
+  el.addEventListener('mousedown', (e) => {
+    if (!isDragModeEnabled && !options.alwaysEnable) return;
+    if (e.target.classList.contains('region-resize-handle')) return; // 尺寸手柄走 resize
+    e.stopPropagation();
+
+    isDragging = true;
+    startMouseX = e.clientX;
+    startMouseY = e.clientY;
+
+    const parent = el.offsetParent || stage;
+    parentRect = parent.getBoundingClientRect();
+
+    startLeftPct = parseFloat(el.style.left) || 0;
+    startTopPct = parseFloat(el.style.top) || 0;
+
+    el.classList.add('dragging');
+    if (options.onStart) options.onStart();
+
+    function onMove(me) {
+      if (!isDragging) return;
+      const dxPx = (me.clientX - startMouseX) / viewportState.scale;
+      const dyPx = (me.clientY - startMouseY) / viewportState.scale;
+
+      const parentW = parent.offsetWidth || DESIGN_W;
+      const parentH = parent.offsetHeight || DESIGN_H;
+
+      const dLeftPct = (dxPx / parentW) * 100;
+      const dTopPct = (dyPx / parentH) * 100;
+
+      let newLeft = Math.round((startLeftPct + dLeftPct) * 10) / 10;
+      let newTop = Math.round((startTopPct + dTopPct) * 10) / 10;
+
+      // 边缘微约束
+      newLeft = Math.max(0, Math.min(96, newLeft));
+      newTop = Math.max(0, Math.min(96, newTop));
+
+      el.style.left = `${newLeft}%`;
+      el.style.top = `${newTop}%`;
+
+      if (options.onMove) options.onMove(newLeft, newTop);
+    }
+
+    function onUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      el.classList.remove('dragging');
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+
+      const finalLeft = parseFloat(el.style.left) || 0;
+      const finalTop = parseFloat(el.style.top) || 0;
+      if (options.onEnd) options.onEnd(finalLeft, finalTop);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+}
+
+// 给 4 个角标绑定直接拖拽
+['topic', 'analysis', 'solution', 'summary'].forEach((id) => {
+  const badgeEl = document.getElementById(`badge-${id}`);
+  const tipEl = document.getElementById(`tip-${id}`);
+  if (!badgeEl) return;
+
+  makeElementDraggable(badgeEl, {
+    alwaysEnable: true,
+    onMove: (x, y) => {
+      badges[id].x = x;
+      badges[id].y = y;
+      if (tipEl) tipEl.textContent = `x: ${x}%, y: ${y}%`;
+    },
+    onEnd: (x, y) => {
+      badges[id].x = x;
+      badges[id].y = y;
+      showToast(`已落座【${badgeName(id)}角标】: [${x}%, ${y}%]`);
+    }
+  });
+});
+
+// 给 4 个区域绑定直接拖拽与拉伸缩放
+['question', 'analysis', 'solution', 'summary'].forEach((regKey) => {
+  const regEl = document.getElementById(`region-${regKey}`);
+  if (!regEl) return;
+
+  // 区域位置拖动
+  makeElementDraggable(regEl, {
+    onMove: (x, y) => {
+      regions[regKey].x = x;
+      regions[regKey].y = y;
+    },
+    onEnd: (x, y) => {
+      regions[regKey].x = x;
+      regions[regKey].y = y;
+      showToast(`已移动【${regionName(regKey)}区域】: [${x}%, ${y}%]`);
+    }
+  });
+
+  // 区域右下角尺寸拉伸
+  const handle = regEl.querySelector('.region-resize-handle');
+  if (handle) {
+    handle.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      let startX = e.clientX;
+      let startY = e.clientY;
+      let startW = parseFloat(regEl.style.width) || regions[regKey].w;
+      let startH = parseFloat(regEl.style.height) || regions[regKey].h;
+
+      function onResize(me) {
+        const dxPx = (me.clientX - startX) / viewportState.scale;
+        const dyPx = (me.clientY - startY) / viewportState.scale;
+
+        const dWPct = (dxPx / DESIGN_W) * 100;
+        const dHPct = (dyPx / DESIGN_H) * 100;
+
+        let newW = Math.max(10, Math.round((startW + dWPct) * 10) / 10);
+        let newH = Math.max(8, Math.round((startH + dHPct) * 10) / 10);
+
+        regEl.style.width = `${newW}%`;
+        regEl.style.height = `${newH}%`;
+        regions[regKey].w = newW;
+        regions[regKey].h = newH;
+      }
+
+      function onStopResize() {
+        window.removeEventListener('mousemove', onResize);
+        window.removeEventListener('mouseup', onStopResize);
+        showToast(`已调整【${regionName(regKey)}】大小: ${regions[regKey].w}% × ${regions[regKey].h}%`);
+      }
+
+      window.addEventListener('mousemove', onResize);
+      window.addEventListener('mouseup', onStopResize);
+    });
+  }
+});
+
+function badgeName(id) {
+  return { topic: '题目', analysis: '分析', solution: '解答', summary: '总结' }[id] || id;
+}
+function regionName(id) {
+  return { question: '题目', analysis: '分析', solution: '解答', summary: '总结' }[id] || id;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 5. 渲染结对板书（按 Row 结对，支持在画布上直拖落笔点）
+// ═══════════════════════════════════════════════════════════════
+
+function parseStartCoord(coordStr, defaultX = 6, defaultY = 6) {
+  if (!coordStr || typeof coordStr !== 'string') return { x: defaultX, y: defaultY };
+  const m = coordStr.match(/\[?\s*(\d+(?:\.\d+)?)\s*%\s*,\s*(\d+(?:\.\d+)?)\s*%\s*\]?/);
+  if (m) {
+    return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+  }
+  return { x: defaultX, y: defaultY };
+}
+
+function renderBoardRows() {
+  // 清空各区域的动态板书
+  ['analysis', 'solution', 'summary'].forEach((stageKey) => {
+    const box = document.getElementById(`content-${stageKey}`);
+    if (box) box.innerHTML = '';
+  });
+
+  // 题目区域渲染
+  const qBox = document.getElementById('content-question');
+  if (qBox) {
+    if (problemData.imageUrl) {
+      qBox.innerHTML = `<img src="${problemData.imageUrl}" style="max-width:100%; max-height:100%; object-fit:contain; display:block; border-radius:4px;"/>`;
+    } else {
+      qBox.innerHTML = `
+        <div style="font-family:'Microsoft YaHei',sans-serif; font-size:18px; font-weight:500; line-height:1.65; color:#1e293b; padding:4px;">
+          ${problemData.text}
+        </div>
+      `;
+    }
+  }
+
+  // 遍历 rowsData，落座到对应 stage 容器内，并赋予直接拖动能力
+  rowsData.forEach((row, idx) => {
+    const rawStage = (row.stage || '分析').trim();
+    let containerKey = 'analysis';
+    if (rawStage.includes('解') || rawStage.includes('答')) containerKey = 'solution';
+    else if (rawStage.includes('总')) containerKey = 'summary';
+    else if (rawStage.includes('题')) containerKey = 'analysis';
+
+    const container = document.getElementById(`content-${containerKey}`);
+    if (!container) return;
+
+    const boardObj = typeof row.board === 'object' ? row.board : { content: String(row.board || '') };
+    const content = boardObj?.content || (typeof row.board === 'string' ? row.board : '');
+    const coord = parseStartCoord(boardObj?.startCoord || row.startCoord, 8, 12 + idx * 16);
+
+    const itemEl = document.createElement('div');
+    itemEl.className = `board-row-item ${idx === activeRowIndex ? 'active-row' : ''}`;
+    itemEl.id = `board-row-el-${idx}`;
+    itemEl.style.left = `${coord.x}%`;
+    itemEl.style.top = `${coord.y}%`;
+    itemEl.style.color = containerKey === 'analysis' ? '#b91c1c' : '#1e293b';
+    itemEl.style.fontFamily = '"LikeJianJianTi","PING FANG SHAO HUA",cursive';
+    itemEl.style.fontSize = '22px';
+    itemEl.style.clipPath = 'inset(0 0% 0 0)';
+
+    itemEl.innerHTML = `
+      <div class="board-row-drag-tip">Row ${idx + 1} 起笔落座: [${coord.x}%, ${coord.y}%]</div>
+      <div class="board-row-text">${content}</div>
+    `;
+
+    // 绑定画布直接拖动！落手直接更新该 row 的 startCoord
+    makeElementDraggable(itemEl, {
+      alwaysEnable: true,
+      onStart: () => {
+        setActiveRow(idx, false);
+      },
+      onMove: (x, y) => {
+        const tip = itemEl.querySelector('.board-row-drag-tip');
+        if (tip) tip.textContent = `Row ${idx + 1} 起笔落座: [${x}%, ${y}%]`;
+      },
+      onEnd: (x, y) => {
+        const coordFormatted = `[${x}%, ${y}%]`;
+        if (typeof row.board === 'object' && row.board) {
+          row.board.startCoord = coordFormatted;
+        } else {
+          row.startCoord = coordFormatted;
+        }
+        showToast(`第 ${idx + 1} 步板书起笔已重设为 ${coordFormatted}`);
+      }
+    });
+
+    itemEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setActiveRow(idx);
+    });
+
+    container.appendChild(itemEl);
+  });
+
+  renderRowsPills();
+  buildTimeline();
+}
+
+// 底部结对 row 胶囊条
+function renderRowsPills() {
+  const bar = document.getElementById('rowsPillsBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+
+  rowsData.forEach((row, idx) => {
+    const pill = document.createElement('div');
+    pill.className = `row-pill ${idx === activeRowIndex ? 'active' : ''}`;
+    pill.innerHTML = `
+      <span class="pill-stage-tag">${row.stage || '步骤'}</span>
+      <span>#${idx + 1} ${(row.speech || '').slice(0, 10)}…</span>
+    `;
+    pill.addEventListener('click', () => {
+      setActiveRow(idx);
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function setActiveRow(index, syncTimeline = true) {
+  if (index < 0 || index >= rowsData.length) return;
+  activeRowIndex = index;
+
+  // 高亮胶囊
+  document.querySelectorAll('.row-pill').forEach((p, i) => {
+    p.classList.toggle('active', i === index);
+  });
+
+  // 高亮画布上的板书元素
+  document.querySelectorAll('.board-row-item').forEach((item, i) => {
+    item.classList.toggle('active-row', i === index);
+  });
+
+  // 更新口播
+  const cur = rowsData[index];
+  if (cur) {
+    document.getElementById('liveSpeechText').textContent = cur.speech || '（无口播）';
+    document.getElementById('liveSpeechStat').textContent = `第 ${index + 1} 步 / 共 ${rowsData.length} 步 · ${cur.stage || ''}`;
+  }
+
+  // 同步时间轴至该步骤起点
+  if (syncTimeline && timelineSegments[index]) {
+    currentTime = timelineSegments[index].startTime;
+    pausePlay();
+    renderBoardByTime();
+    updateTimeUI();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 6. 底层 rough.js 几何板书图绘制（继承夏夏原型的优雅质感）
+// ═══════════════════════════════════════════════════════════════
+function drawBackgroundCanvas() {
+  const cv = document.getElementById('cv');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const rc = rough.canvas(cv);
+
+  ctx.clearRect(0, 0, DESIGN_W, DESIGN_H);
+
+  // 草稿纸圆点微点阵
+  ctx.fillStyle = 'rgba(216,211,196,0.35)';
+  for (let x = 16; x < DESIGN_W; x += 22) {
+    for (let y = 16; y < DESIGN_H; y += 22) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 如果是平行四边形演示样题，绘制精美的几何图形
+  const A = { x: 180, y: 720 }, B = { x: 580, y: 720 }, C = { x: 680, y: 460 }, D = { x: 280, y: 460 };
+  const Hfoot = { x: D.x, y: A.y };
+
+  // 1. 平行四边形轮廓
+  rc.polygon([[A.x, A.y], [B.x, B.y], [C.x, C.y], [D.x, D.y]], {
+    roughness: 1.4, bowing: 0.6, stroke: '#334155', strokeWidth: 2.4, seed: 101
+  });
+
+  // 2. 垂线高
+  rc.linearPath([[D.x, D.y], [Hfoot.x, Hfoot.y]], {
+    roughness: 1.8, stroke: '#dc2626', strokeWidth: 2.2, strokeLineDash: [8, 6], seed: 202
+  });
+
+  // 3. 直角符号
+  rc.linearPath([[Hfoot.x - 14, Hfoot.y], [Hfoot.x - 14, Hfoot.y - 14], [Hfoot.x, Hfoot.y - 14]], {
+    roughness: 1.2, stroke: '#64748b', strokeWidth: 1.5, seed: 303
+  });
+
+  // 4. 顶点标签白底文字
+  function drawText(txt, x, y, color = '#1e3a8a') {
+    ctx.save();
+    ctx.font = 'bold 20px "PingFang SC", sans-serif';
+    const tw = ctx.measureText(txt).width;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.fillRect(x - tw / 2 - 4, y - 18, tw + 8, 26);
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(txt, x, y - 4);
+    ctx.restore();
+  }
+
+  drawText('A', A.x - 16, A.y + 16);
+  drawText('B', B.x + 16, B.y + 16);
+  drawText('C', C.x + 16, C.y - 16);
+  drawText('D', D.x - 16, D.y - 16);
+  drawText('E', Hfoot.x - 14, Hfoot.y + 16, '#dc2626');
+  drawText('h = 20.4 cm', D.x - 65, (D.y + Hfoot.y) / 2, '#dc2626');
+  drawText('底 a = 9 cm', (A.x + B.x) / 2, A.y + 36, '#475569');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 7. 读取系统最新数据 (handoff / deliverable json)
+// ═══════════════════════════════════════════════════════════════
+async function loadLiveData() {
+  showToast('正在读取系统最新 handoff / 生成表数据…');
+  try {
+    // 0. 最先检查 localStorage 本地即时草稿（来自工作台一键带入）
+    try {
+      const localDraft = localStorage.getItem('qinghuabu.humanBoard.liveDraft');
+      if (localDraft) {
+        const parsed = JSON.parse(localDraft);
+        if (parsed && (parsed.problemText || (parsed.rows && parsed.rows.length))) {
+          applyPayload(parsed);
+          showToast('已即时同步当前工作台最新 rows！');
+          return;
+        }
+      }
+    } catch {}
+
+    // 1. 优先读取 /api/deliverable
+    const dRes = await fetch('/api/deliverable');
+    if (dRes.ok) {
+      const dData = await dRes.json();
+      if (dData.ok && dData.deliverable) {
+        applyPayload(dData.deliverable);
+        showToast('已无缝载入最新项目产物数据！');
+        return;
+      }
+    }
+
+    // 次选读取 /api/handoff
+    const hRes = await fetch('/api/handoff');
+    if (hRes.ok) {
+      const hData = await hRes.json();
+      if (hData.ok && hData.handoff) {
+        applyPayload(hData.handoff);
+        showToast('已从 handoff 载入题目与布局！');
+        return;
+      }
+    }
+
+    // 默认回退
+    loadDemoData();
+  } catch (err) {
+    console.warn('获取在线数据失败，载入样题:', err);
+    loadDemoData();
+  }
+}
+
+function applyPayload(payload) {
+  if (payload.problemText) problemData.text = payload.problemText;
+  if (payload.sourceImageUrl) problemData.imageUrl = payload.sourceImageUrl;
+
+  // 如果有 boardPlan，同步四区域落座
+  if (payload.boardPlan) {
+    ['question', 'analysis', 'solution', 'summary'].forEach((k) => {
+      if (payload.boardPlan[k]) {
+        const bp = payload.boardPlan[k];
+        regions[k].x = bp.x ?? regions[k].x;
+        regions[k].y = bp.y ?? regions[k].y;
+        regions[k].w = bp.w ?? regions[k].w;
+        regions[k].h = bp.h ?? regions[k].h;
+        const el = document.getElementById(`region-${k}`);
+        if (el) {
+          el.style.left = `${regions[k].x}%`;
+          el.style.top = `${regions[k].y}%`;
+          el.style.width = `${regions[k].w}%`;
+          el.style.height = `${regions[k].h}%`;
+        }
+      }
+    });
+  }
+
+  // 如果有 rows，直接结对使用！
+  if (Array.isArray(payload.rows) && payload.rows.length) {
+    rowsData = JSON.parse(JSON.stringify(payload.rows));
+  } else {
+    rowsData = JSON.parse(JSON.stringify(DEMO_ROWS));
+  }
+
+  renderBoardRows();
+  setActiveRow(0);
+}
+
+function loadDemoData() {
+  problemData = {
+    text: '甲、乙两地相距一千米，A、B两人分别从甲、乙两地同时出发，在甲、乙两地之间往返散步。两人第一次相遇时距中点五十米，如果B的速度比A快，那么两人第二次相遇的地点距乙地多少米？',
+    imageUrl: ''
+  };
+  rowsData = JSON.parse(JSON.stringify(DEMO_ROWS));
+  renderBoardRows();
+  setActiveRow(0);
+  showToast('已切换至夏夏【平行四边形面积】演示样题');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 8. 交互事件与按钮绑定
+// ═══════════════════════════════════════════════════════════════
+
+function showToast(msg) {
+  const t = document.getElementById('toastMsg');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.classList.remove('show');
+  }, 2200);
+}
+
+document.getElementById('btnZoomIn').addEventListener('click', () => zoom(1.15));
+document.getElementById('btnZoomOut').addEventListener('click', () => zoom(0.87));
+document.getElementById('btnZoomFit').addEventListener('click', fitToScreen);
+document.getElementById('btnZoomReset').addEventListener('click', () => {
+  viewportState.scale = 1;
+  viewportState.tx = 0;
+  viewportState.ty = 0;
+  applyViewportTransform();
+  showToast('视图已复位 100%');
+});
+
+document.getElementById('btnToggleDrag').addEventListener('click', () => {
+  isDragModeEnabled = !isDragModeEnabled;
+  document.getElementById('dragStatusText').textContent = isDragModeEnabled ? '开' : '关';
+  document.getElementById('dragStatusText').style.color = isDragModeEnabled ? '#38bdf8' : '#94a3b8';
+  stage.classList.toggle('drag-enabled', isDragModeEnabled);
+  showToast(isDragModeEnabled ? '已开启直接拖动落座' : '已锁定画布位置');
+});
+
+document.getElementById('btnToggleGuides').addEventListener('click', () => {
+  showGuides = !showGuides;
+  document.querySelectorAll('.stage-region').forEach((el) => {
+    el.classList.toggle('debug-mode', showGuides);
+  });
+  showToast(showGuides ? '已显示区域参考边框' : '已隐藏参考框');
+});
+
+document.getElementById('btnSourceLive').addEventListener('click', () => {
+  document.getElementById('btnSourceLive').classList.add('active');
+  document.getElementById('btnSourceDemo').classList.remove('active');
+  loadLiveData();
+});
+
+document.getElementById('btnSourceDemo').addEventListener('click', () => {
+  document.getElementById('btnSourceDemo').classList.add('active');
+  document.getElementById('btnSourceLive').classList.remove('active');
+  loadDemoData();
+});
+
+document.getElementById('btnPrevStep').addEventListener('click', () => {
+  if (activeRowIndex > 0) setActiveRow(activeRowIndex - 1);
+});
+document.getElementById('btnNextStep').addEventListener('click', () => {
+  if (activeRowIndex < rowsData.length - 1) setActiveRow(activeRowIndex + 1);
+});
+document.getElementById('btnPlayToggle').addEventListener('click', togglePlay);
+
+document.getElementById('timelineSlider').addEventListener('input', (e) => {
+  currentTime = parseFloat(e.target.value);
+  pausePlay();
+  renderBoardByTime();
+  updateTimeUI();
+});
+
+document.getElementById('btnExportJson').addEventListener('click', () => {
+  const exportPayload = {
+    badges,
+    regions,
+    problemData,
+    rows: rowsData
+  };
+  const jsonStr = JSON.stringify(exportPayload, null, 2);
+  navigator.clipboard.writeText(jsonStr).then(() => {
+    showToast('已复制完整落座参数 JSON 到剪贴板！');
+  }).catch(() => {
+    console.log(jsonStr);
+    showToast('复制失败，已输出到控制台');
+  });
+});
+
+window.addEventListener('resize', fitToScreen);
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+  stage.classList.add('drag-enabled');
+  drawBackgroundCanvas();
+  fitToScreen();
+  loadLiveData();
+});
+</script>
+</body>
+</html>

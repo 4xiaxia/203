@@ -25,6 +25,7 @@ import {
   FundProjectionScreenOutlined,
   PictureOutlined,
   ShareAltOutlined,
+  FieldTimeOutlined,
 } from '@ant-design/icons-vue'
 import {
   CANVAS_W as DESIGN_W,
@@ -38,6 +39,7 @@ import {
 } from './liveBoardPreview.js'
 
 const RealBoardPreview = defineAsyncComponent(() => import('../components/RealBoardPreview.vue'))
+const VisualTimeline = defineAsyncComponent(() => import('../components/VisualTimeline.vue'))
 
 const params = new URLSearchParams(window.location.search)
 
@@ -198,6 +200,12 @@ const filteredRows = computed(() => {
   if (selectedStageFilter.value === 'all') return rows.value
   return rows.value.filter(r => r.stage === selectedStageFilter.value)
 })
+
+function onTimelineUpdateRows(updated) {
+  if (Array.isArray(updated)) {
+    rows.value = updated
+  }
+}
 
 // 所有出现的教学阶段
 const stageOptions = computed(() => {
@@ -669,6 +677,13 @@ function getStageTagColor(stage) {
               >
                 <CodeOutlined /> 自动化视频流水线对接 (JSON)
               </button>
+              <button
+                class="tab-nav-btn"
+                :class="{ active: activeTab === 'timeline' }"
+                @click="activeTab = 'timeline'"
+              >
+                <FieldTimeOutlined /> ⏱️ 动静双轨时序对齐 (Visual Timeline)
+              </button>
             </div>
 
             <div class="tab-header-actions">
@@ -814,6 +829,15 @@ function getStageTagColor(stage) {
               </a-button>
             </div>
             <pre class="json-code-block"><code>{{ pipelineJsonString }}</code></pre>
+          </div>
+
+          <!-- TAB 4: 动静双轨视觉时间轴 (Visual Timeline) -->
+          <div v-show="activeTab === 'timeline'" class="tab-pane-content tab-timeline-pane">
+            <VisualTimeline
+              :rows="rows"
+              :project-code="projectCode"
+              @update:rows="onTimelineUpdateRows"
+            />
           </div>
         </div>
       </section>
