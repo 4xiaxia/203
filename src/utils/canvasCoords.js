@@ -3,6 +3,8 @@
  * - 甲方真画布：1726 × 980（落最终画面）
  * - 夏夏表稿参考尺寸：1892 × 1044（表里写的像素坐标按此估算）
  * 换算：实际X = 表中X * 1726/1892；实际Y = 表中Y * 980/1044
+ *
+ * @pipeline-optimized 添加坐标转换缓存，减少重复计算
  */
 export const CANVAS_W = 1726
 export const CANVAS_H = 980
@@ -20,26 +22,61 @@ export const ZONE_REF_PX = {
   summary: { name: '总结区', x1: 120, x2: 1740, y1: 830, y2: 920 },
 }
 
+/* ====== @pipeline-optimized 坐标缓存 ====== */
+const _pctToPxCache = new Map()
+const _pxToPctCache = new Map()
+const _tablePxCache = new Map()
+const CACHE_LIMIT = 512
+
+function cacheSet(cache, key, value) {
+  if (cache.size >= CACHE_LIMIT) {
+    const firstKey = cache.keys().next().value
+    cache.delete(firstKey)
+  }
+  cache.set(key, value)
+}
+
+/** 百分比坐标 → 画布像素坐标（带缓存） */
+export function pctToCanvasPx(xPct, yPct) {
+  const key = xPct + ',' + yPct
+  const cached = _pctToPxCache.get(key)
+  if (cached) return cached
+  const result = {
+    x: Math.round((xPct / 100) * CANVAS_W),
+    y: Math.round((yPct / 100) * CANVAS_H),
+  }
+  cacheSet(_pctToPxCache, key, result)
+  return result
+}
+
+/** 画布像素坐标 → 百分比坐标（带缓存） */
+export function canvasPxToPct(x, y) {
+  const key = x + ',' + y
+  const cached = _pxToPctCache.get(key)
+  if (cached) return cached
+  const result = {
+    x: Number(((Number(x) / CANVAS_W) * 100).toFixed(2)),
+    y: Number(((Number(y) / CANVAS_H) * 100).toFixed(2)),
+  }
+  cacheSet(_pxToPctCache, key, result)
+  return result
+}
+
 export function tablePxToCanvasPx(x, y) {
-  return {
+  const key = x + ',' + y
+  const cached = _tablePxCache.get(key)
+  if (cached) return cached
+  const result = {
     x: Math.round(Number(x) * SCALE_X),
     y: Math.round(Number(y) * SCALE_Y),
   }
+  cacheSet(_tablePxCache, key, result)
+  return result
 }
 
 export function tablePxToPct(x, y) {
   const p = tablePxToCanvasPx(x, y)
-  return {
-    x: Number(((p.x / CANVAS_W) * 100).toFixed(2)),
-    y: Number(((p.y / CANVAS_H) * 100).toFixed(2)),
-  }
-}
-
-export function canvasPxToPct(x, y) {
-  return {
-    x: Number(((Number(x) / CANVAS_W) * 100).toFixed(2)),
-    y: Number(((Number(y) / CANVAS_H) * 100).toFixed(2)),
-  }
+  return canvasPxToPct(p.x, p.y)
 }
 
 export function zoneToPct(zone) {
@@ -57,7 +94,19 @@ export function zoneToPct(zone) {
   }
 }
 
+/* 预计算分区缓存（启动时一次） */
+const _zonePctCache = {}
+export function zoneToPctCached(zone) {
+  if (!_zonePctCache[zone]) {
+    _zonePctCache[zone] = zoneToPct(zone)
+  }
+  return _zonePctCache[zone]
+}
+
+/* 预计算网格线（启动时一次） */
+let _gridLinesCache = null
 export function buildGridLines() {
+  if (_gridLinesCache) return _gridLinesCache
   const minor = []
   const major = []
   for (let p = 5; p < 100; p += 5) {
@@ -65,11 +114,19 @@ export function buildGridLines() {
     if (item.major) major.push(item)
     else minor.push(item)
   }
-  return { minor, major }
+  _gridLinesCache = { minor, major }
+  return _gridLinesCache
 }
 
 export function formatTablePx(x, y) {
   const c = tablePxToCanvasPx(x, y)
   const pct = canvasPxToPct(c.x, c.y)
   return `表(${x},${y}) → 画布(${c.x},${c.y})px / (${pct.x},${pct.y})%`
+}
+
+/** @pipeline-optimized 清除所有坐标缓存 */
+export function clearCoordinateCache() {
+  _pctToPxCache.clear()
+  _pxToPctCache.clear()
+  _tablePxCache.clear()
 }

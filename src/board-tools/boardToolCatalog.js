@@ -1,4 +1,6 @@
-/* @qh-core LANE=SHARED POINT=TOOL_CATALOG only registered actions for B script */
+/* @qh-core LANE=SHARED POINT=TOOL_CATALOG only registered actions for B script
+ * @pipeline-optimized 批量准备 + 容错处理
+ */
 import { createHandActionScheduler } from './handActionScheduler.js'
 import { createTextTargetRegistry } from './textTargetRegistry.js'
 import {
@@ -14,7 +16,7 @@ import {
   validateRoughDrawingAction,
 } from './roughDrawingTool.js'
 
-export const BOARD_TOOL_CATALOG_VERSION = '1.3.0'
+export const BOARD_TOOL_CATALOG_VERSION = '1.4.0'
 
 export function getAgentBoardToolCatalog() {
   return {
@@ -76,13 +78,35 @@ export function createBoardToolRuntime({
     throw new Error(`未支持的板书工具: ${action?.tool || '空'}`)
   }
 
+  /* @pipeline-optimized 批量准备：先验证全部，再统一入队，部分失败不阻塞 */
+  function prepareAll(actions) {
+    const plans = []
+    const errors = []
+    for (let i = 0; i < actions.length; i++) {
+      try {
+        plans.push(prepare(actions[i]))
+      } catch (error) {
+        errors.push({ index: i, error: error?.message || String(error) })
+      }
+    }
+    if (errors.length && plans.length === 0) {
+      throw new Error(`全部动作准备失败: ${errors.map(e => e.error).join('; ')}`)
+    }
+    if (errors.length) {
+      console.warn('[BoardToolRuntime] 部分动作准备失败:', errors)
+    }
+    return plans
+  }
+
   return {
     enqueue(action) {
       const plan = prepare(action)
       return scheduler.enqueue(plan)
     },
+    /* @pipeline-optimized 批量准备 + 批量入队 */
     enqueueAll(actions) {
-      const plans = actions.map(prepare)
+      const plans = prepareAll(actions)
+      if (plans.length === 0) return []
       return scheduler.enqueueAll(plans)
     },
     clear() {

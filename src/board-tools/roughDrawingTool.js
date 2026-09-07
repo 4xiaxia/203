@@ -122,22 +122,49 @@ function normalizeRegionBounds(bounds) {
   return { x, y, width, height }
 }
 
+/* @pipeline-optimized 坐标转换缓存 */
+const _toDesignPxCache = new Map()
+const CACHE_LIMIT = 256
+
 function toDesignPixels(action) {
+  const cacheKey = `${action.tool}:${action.start[0]},${action.start[1]}:${action.end[0]},${action.end[1]}`
+  if (_toDesignPxCache.has(cacheKey)) {
+    return { ..._toDesignPxCache.get(cacheKey) }
+  }
+
   const toPoint = ([x, y]) => [
     (x / 100) * BOARD_DESIGN_SIZE.width,
     (y / 100) * BOARD_DESIGN_SIZE.height,
   ]
-  return { ...action, start: toPoint(action.start), end: toPoint(action.end) }
+  const result = { ...action, start: toPoint(action.start), end: toPoint(action.end) }
+
+  if (_toDesignPxCache.size >= CACHE_LIMIT) {
+    const firstKey = _toDesignPxCache.keys().next().value
+    _toDesignPxCache.delete(firstKey)
+  }
+  _toDesignPxCache.set(cacheKey, result)
+  return result
 }
 
+/* @pipeline-optimized 种子缓存，避免重复 hash 计算 */
+const _seedCache = new Map()
 function stableSeed(action) {
   const source = JSON.stringify(action)
+  if (_seedCache.has(source)) return _seedCache.get(source)
+
   let hash = 2166136261
   for (const char of source) {
     hash ^= char.codePointAt(0)
     hash = Math.imul(hash, 16777619)
   }
-  return ((hash >>> 0) % 2147483646) + 1
+  const seed = ((hash >>> 0) % 2147483646) + 1
+
+  if (_seedCache.size >= CACHE_LIMIT) {
+    const firstKey = _seedCache.keys().next().value
+    _seedCache.delete(firstKey)
+  }
+  _seedCache.set(source, seed)
+  return seed
 }
 
 function requireSvgElement(element, message) {
@@ -183,12 +210,35 @@ function roughOptions(action) {
   }
 }
 
-function appendRoughShape(svg, action) {
-  const renderer = rough.svg(svg)
-  const options = roughOptions(action)
-  if (action.tool === 'rough-line') {
-    return renderer.line(...action.start, ...action.end, options)
+/* @pipeline-optimized 单例 rough 渲染器缓存 — 每个 SVG overlay 只创建一次 */
+const _rendererCache = new WeakMap()
+function getRoughRenderer(svg) {
+  if (!_rendererCache.has(svg)) {
+    _rendererCache.set(svg, rough.svg(svg))
   }
+  return _rendererCache.get(svg)
+}
+
+/* @pipeline-optimized 按工具类型分组的 SVG 容器 */
+function createActionGroup(overlay, actionType) {
+  let group = overlay.querySelector(`[data-action-group="${actionType}"]`)
+  if (!group) {
+    group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    group.dataset.actionGroup = actionType
+    overlay.appendChild(group)
+  }
+  return group
+}
+
+function appendRoughShape(svg, action) {
+  const renderer = getRoughRenderer(svg)
+  const options = roughOptions(action)
+
+  if (action.tool === 'rough-line') {
+    const element = renderer.line(...action.start, ...action.end, options)
+    return element
+  }
+
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
   const heads = arrowHeadPoints(action.start, action.end)
   group.append(
@@ -199,21 +249,36 @@ function appendRoughShape(svg, action) {
   return group
 }
 
+/* @pipeline-optimized 使用 Web Animations API 替代 CSS transition */
 function animatePaths(group, durationMs) {
   const paths = [...group.querySelectorAll('path')]
   const lengths = paths.map((path) => Math.max(1, path.getTotalLength()))
   const totalLength = lengths.reduce((sum, length) => sum + length, 0)
   let elapsedMs = 0
+
   paths.forEach((path, index) => {
     const length = lengths[index]
     const pathDurationMs = Math.max(1, Math.round((length / totalLength) * durationMs))
+
     path.style.strokeDasharray = `${length}`
     path.style.strokeDashoffset = `${length}`
-    path.style.transition = 'none'
-    requestAnimationFrame(() => {
-      path.style.transition = `stroke-dashoffset ${pathDurationMs}ms cubic-bezier(.42,0,.58,1) ${elapsedMs}ms`
-      path.style.strokeDashoffset = '0'
-    })
+
+    if (typeof path.animate === 'function') {
+      path.animate(
+        [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
+        {
+          duration: pathDurationMs,
+          easing: 'cubic-bezier(.42,0,.58,1)',
+          delay: elapsedMs,
+          fill: 'forwards',
+        }
+      )
+    } else {
+      requestAnimationFrame(() => {
+        path.style.transition = `stroke-dashoffset ${pathDurationMs}ms cubic-bezier(.42,0,.58,1) ${elapsedMs}ms`
+        path.style.strokeDashoffset = '0'
+      })
+    }
     elapsedMs += pathDurationMs
   })
 }
@@ -277,9 +342,10 @@ export function prepareRoughDrawingAction(action, { resolveCanvas, resolveRegion
     durationMs,
     execute() {
       group?.remove()
+      const container = createActionGroup(overlay, normalized.tool)
       group = appendRoughShape(overlay, drawingAction)
       group.dataset.boardActionId = id
-      overlay.appendChild(group)
+      container.appendChild(group)
       animatePaths(group, durationMs)
       return group
     },

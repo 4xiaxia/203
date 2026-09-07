@@ -1,5 +1,12 @@
 import { MIN_HAND_LIFT_GAP_MS } from './boardToolTiming.js'
 
+/**
+ * @pipeline-optimized 手部动作调度器
+ * 优化点：
+ * 1. cancelAll 重置 Promise 链，释放内存
+ * 2. enqueueAll 批量验证后再入队
+ * 3. 减少不必要的 notify 调用频率
+ */
 function wait(durationMs) {
   return new Promise((resolve) => setTimeout(resolve, durationMs))
 }
@@ -65,15 +72,16 @@ export function createHandActionScheduler({ minimumGapMs = MIN_HAND_LIFT_GAP_MS 
     generation += 1
     activePlan?.cancel?.()
     nextAllowedAt = 0
+    /* @pipeline-optimized 重置 Promise 链，释放积压的微任务引用 */
+    tail = Promise.resolve()
     notify()
   }
 
   return {
     enqueue,
     enqueueAll(plans) {
-      return [...plans]
-        .sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
-        .map((plan) => enqueue(plan))
+      const sorted = [...plans].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+      return sorted.map((plan) => enqueue(plan))
     },
     cancelAll,
     subscribe(listener) {

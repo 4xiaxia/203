@@ -1,5 +1,7 @@
 <script setup>
-/* @qh-core LANE=SHARED POINT=TRUE_PREVIEW 1726x980 capture source */
+/* @qh-core LANE=SHARED POINT=TRUE_PREVIEW 1726x980 capture source
+ * @pipeline-optimized 批量动作规范化 + watch 防抖
+ */
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import BoardContentLayer from './BoardContentLayer.vue'
 import {
@@ -35,6 +37,10 @@ const boardRef = ref(null)
 const roughSvgRef = ref(null)
 let runtime = null
 
+/* @pipeline-optimized watch 防抖 timer */
+let playDebounceTimer = null
+const PLAY_DEBOUNCE_MS = 16 // 一帧间隔，合并快速连续更新
+
 function resolveCanvas() {
   return roughSvgRef.value
 }
@@ -65,27 +71,42 @@ function initRuntime() {
   })
 }
 
-function normalizeActionSpecItem(item) {
-  // B 输出格式：{ action: { tool, order, ... } } 或 { capabilityGap: {...} }
-  // 代码期望格式：{ tool, order, ... }
-  if (item?.capabilityGap) return null
-  if (item?.action && typeof item.action === 'object') {
-    return { ...item.action }
+/* @pipeline-optimized 批量规范化，减少逐个处理开销 */
+function normalizeActionSpecBatch(items) {
+  const result = []
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    // B 输出格式：{ action: { tool, order, ... } } 或 { capabilityGap: {...} }
+    // 代码期望格式：{ tool, order, ... }
+    if (item?.capabilityGap) continue
+    if (item?.action && typeof item.action === 'object') {
+      result.push({ ...item.action })
+    } else {
+      result.push(item)
+    }
   }
-  return item
+  return result
 }
 
 function playActionSpec() {
   if (!runtime || !props.autoPlay) return
   runtime.clear()
   if (props.actionSpec?.length) {
-    const normalized = props.actionSpec
-      .map(normalizeActionSpecItem)
-      .filter(Boolean)
+    /* @pipeline-optimized 批量处理替代逐个 map + filter */
+    const normalized = normalizeActionSpecBatch(props.actionSpec)
     if (normalized.length) {
       runtime.enqueueAll(normalized)
     }
   }
+}
+
+/* @pipeline-optimized 防抖播放：合并快速连续的 actionSpec 更新 */
+function debouncedPlayActionSpec() {
+  if (playDebounceTimer) clearTimeout(playDebounceTimer)
+  playDebounceTimer = setTimeout(() => {
+    playDebounceTimer = null
+    nextTick(playActionSpec)
+  }, PLAY_DEBOUNCE_MS)
 }
 
 onMounted(() => nextTick(() => {
@@ -93,11 +114,14 @@ onMounted(() => nextTick(() => {
   playActionSpec()
 }))
 
-watch(() => props.actionSpec, () => {
-  nextTick(playActionSpec)
-}, { deep: true })
+/* @pipeline-optimized 使用防抖 watch，避免高频更新触发多次渲染 */
+watch(() => props.actionSpec, debouncedPlayActionSpec, { deep: true })
 
 onBeforeUnmount(() => {
+  if (playDebounceTimer) {
+    clearTimeout(playDebounceTimer)
+    playDebounceTimer = null
+  }
   runtime?.clear()
   runtime = null
 })
